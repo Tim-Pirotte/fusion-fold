@@ -1,0 +1,27 @@
+# https://pythonspeed.com/articles/alpine-docker-python/
+# We chose a hardened Debian based image instead
+# https://hub.docker.com/hardened-images/catalog/dhi/python/guides
+FROM dhi.io/python:3.10-dev
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/venv/bin:$PATH"
+
+WORKDIR /app
+
+RUN python -m venv /app/venv
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+FROM dhi.io/python:3.10 AS runtime-stage
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/venv/bin:$PATH"
+
+WORKDIR /app
+
+COPY --from=build-stage /app/venv /app/venv
+COPY app.py .
+
+CMD ["python", "/app/app.py"]
