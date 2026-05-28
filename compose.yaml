@@ -1,0 +1,15 @@
+services:
+  frontend:
+    build: ./frontend
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_PASSWORD=unsafe
+    ports:
+      - 8000:8000
+
+  redis:
+    image: dhi.io/redis:8
+    restart: always
+    command: redis-server --requirepass unsafe
