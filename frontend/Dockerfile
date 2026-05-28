@@ -1,7 +1,7 @@
 # https://pythonspeed.com/articles/alpine-docker-python/
 # We chose a hardened Debian based image instead
 # https://hub.docker.com/hardened-images/catalog/dhi/python/guides
-FROM dhi.io/python:3.10-dev
+FROM dhi.io/python:3.10-dev AS build-stage
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -22,6 +22,6 @@ ENV PATH="/app/venv/bin:$PATH"
 WORKDIR /app
 
 COPY --from=build-stage /app/venv /app/venv
-COPY app.py .
+COPY . .
 
-CMD ["python", "/app/app.py"]
+CMD ["flask", "--host", "0.0.0.0", "--port", "8000"]
