@@ -1,0 +1,4 @@
+user default off
+
+user read-delete on >PASSW ~* +@read +del
+user write on >PASSW ~* +@write
