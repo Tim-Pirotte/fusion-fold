@@ -1,11 +1,8 @@
 services:
   frontend:
     build: ./frontend
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_DB=0
-      - REDIS_PASSWORD=unsafe
+    env_file:
+      - ./frontend/.env
     ports:
       - 8000:8000
 
