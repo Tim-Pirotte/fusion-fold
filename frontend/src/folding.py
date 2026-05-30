@@ -21,7 +21,9 @@ def get_model():
             time_encoding_length=8,
         )
         
-        _model.load_state_dict(torch.load(os.path.join('models', 'rna.pt'), map_location=torch.device('cpu')))
+        model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'rna.pt')
+        
+        _model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
         _model.eval()
 
     return _model
