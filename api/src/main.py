@@ -33,7 +33,7 @@ class SessionResponse(p.BaseModel):
     sessionId: str
 
 @app.post(
-    '/api/generate-folding-session/', 
+    '/v1/folding-sessions/', 
     response_model=SessionResponse,
 )
 async def generate_folding_session(payload: SessionRequest):
@@ -41,7 +41,7 @@ async def generate_folding_session(payload: SessionRequest):
     
     return { 'sessionId': session_id }
 
-@app.get('/api/stream-folding/{session_id}')
+@app.get('/v1/folding-sessions/{session_id}')
 async def stream_folding(
     session_id: str,
 ):
