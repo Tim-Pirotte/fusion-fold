@@ -3,10 +3,16 @@ services:
     build: ./frontend
     env_file:
       - ./frontend/.env
+    networks:
+      - redis
     ports:
       - 8000:8000
 
   redis:
-    image: dhi.io/redis:8
+    build: ./redis
     restart: always
-    command: redis-server --requirepass unsafe
+    networks:
+      - redis
+
+networks:
+  redis:
