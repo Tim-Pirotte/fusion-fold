@@ -1,4 +1,5 @@
-from typing import Type, NamedTuple
+from pathlib import Path
+from typing import Type
 import functools
 import time
 import uuid
@@ -15,8 +16,8 @@ def get_connection(settings: s.Settings, username: str) -> r.Redis:
         host=settings.redis_host, 
         port=settings.redis_port, 
         db=settings.redis_db,
-        username=settings.__getattribute__(f'redis_{username}_username'),
-        password=settings.__getattribute__(f'redis_{username}_password'),
+        username=username,
+        password=Path(f'/run/secrets/redis_{username}').read_text(),
         decode_responses=True,
     )
 
