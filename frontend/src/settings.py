@@ -5,7 +5,11 @@ class Settings(ps.BaseSettings):
     redis_host: str = 'localhost'
     redis_port: int = p.Field(default=6379, ge=0, le=65_535)
     redis_db: int = p.Field(default=0, ge=0, le=15)
-    redis_password: str = p.Field()
+    
+    redis_write_username: str = p.Field()
+    redis_write_password: str = p.Field()
+    redis_read_delete_username: str = p.Field()
+    redis_read_delete_password: str = p.Field()
 
     session_ttl: int = p.Field(default=60, ge=0)
     
