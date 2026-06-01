@@ -3,6 +3,7 @@ import * as m from "./model.js";
 import * as c from "./clamp.js";
 import * as a from "./align.js";
 
+const API = "http://localhost:5000";
 const MIN_SEQUENCE_LENGTH = 2;
 
 function init(objectManager) {
@@ -130,7 +131,7 @@ async function generateFolds(e, objectManager) {
     let lastStrand = null;
     let lastDistanceMap = null;
 
-    const eventSource = new EventSource(`/api/stream-folding/${sessionId}`);
+    const eventSource = new EventSource(`${API}/v1/folding-sessions/${sessionId}`);
 
     eventSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
@@ -221,7 +222,7 @@ function hideOverview() {
 
 async function getFoldingSession(sequence, folds, steps, returnNoise) {
     const res = await fetch(
-        "/api/generate-folding-session/", 
+        `${API}/v1/folding-sessions/`, 
         {
             method: "POST",
             headers: {
