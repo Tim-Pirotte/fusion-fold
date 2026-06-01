@@ -1,4 +1,16 @@
 services:
+  api:
+    build: ./api
+    env_file:
+      - ./api/.env
+    networks:
+      - redis
+    ports: 
+      - 5000:5000
+    secrets:
+      - redis_write
+      - redis_read_delete
+
   frontend:
     build: ./frontend
     env_file:
