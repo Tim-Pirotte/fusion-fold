@@ -5,6 +5,7 @@ import asyncio
 
 import pydantic as p
 import fastapi as fa
+from fastapi.middleware.cors import CORSMiddleware
 
 import db
 import folding as f
@@ -14,6 +15,18 @@ logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
 
 app = fa.FastAPI(title='RNA Folding API')
+
+origins = [
+    'http://localhost:8000',
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=['GET', 'POST'],
+    allow_headers=['*'],
+)
 
 settings = s.Settings()
 
