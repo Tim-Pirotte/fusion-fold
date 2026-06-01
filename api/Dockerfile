@@ -21,4 +21,4 @@ WORKDIR /app
 COPY --from=build-stage /app/venv /app/venv
 COPY . .
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
