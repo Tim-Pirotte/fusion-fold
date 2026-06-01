@@ -7,20 +7,17 @@ import redis as r
 
 import settings as s
 
-class DB(NamedTuple):
-    sessions: r.Redis
-    session_ttl: int
-
-def get_db(settings: s.Settings) -> DB:
-    return DB(
-        r.Redis(
-            host=settings.redis_host, 
-            port=settings.redis_port, 
-            db=settings.redis_db,
-            password=settings.redis_password,
-            decode_responses=True,
-        ),
-        settings.session_ttl,
+WRITE_USER = 'write'
+READ_DELETE_USER = 'read_delete'
+    
+def get_connection(settings: s.Settings, username: str) -> r.Redis:
+    return r.Redis(
+        host=settings.redis_host, 
+        port=settings.redis_port, 
+        db=settings.redis_db,
+        username=settings.__getattribute__(f'redis_{username}_username'),
+        password=settings.__getattribute__(f'redis_{username}_password'),
+        decode_responses=True,
     )
 
 class DataBaseError(Exception):
@@ -57,16 +54,20 @@ def retry_on_error(retries: int, delay_s: float, exceptions: Type[BaseException]
 
 @handle_redis_errors
 @retry_on_error(1, 2, (r.ConnectionError, r.TimeoutError))
-def create_session(db: DB, data: str) -> str:
+def create_session(settings: s.Settings, data: str) -> str:
     session_id = str(uuid.uuid4())
-    db.sessions.setex(session_id, db.session_ttl, data)
+    
+    connection = get_connection(settings, WRITE_USER)
+    connection.setex(session_id, settings.session_ttl, data)
 
     return session_id
 
 @handle_redis_errors
 @retry_on_error(1, 2, (r.ConnectionError, r.TimeoutError))
-def get_session(db: DB, session_id: str) -> str | None:
-    pipe = db.sessions.pipeline()
+def get_session(settings: s.Settings, session_id: str) -> str | None:
+    connection = get_connection(settings, READ_DELETE_USER)
+    
+    pipe = connection.pipeline()
     pipe.get(session_id)
     pipe.delete(session_id)
 
