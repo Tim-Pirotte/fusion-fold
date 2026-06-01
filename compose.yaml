@@ -7,6 +7,9 @@ services:
       - redis
     ports:
       - 8000:8000
+    secrets:
+      - redis_write
+      - redis_read_delete
 
   redis:
     build: ./redis
@@ -22,3 +25,7 @@ networks:
 secrets:
   redis_acl:
     file: ./redis/users.acl
+  redis_write:
+    file: ./redis/write.secret
+  redis_read_delete:
+    file: ./redis/read_delete.secret
