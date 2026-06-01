@@ -13,15 +13,8 @@ services:
 
   frontend:
     build: ./frontend
-    env_file:
-      - ./frontend/.env
-    networks:
-      - redis
     ports:
       - 8000:8000
-    secrets:
-      - redis_write
-      - redis_read_delete
 
   redis:
     build: ./redis
