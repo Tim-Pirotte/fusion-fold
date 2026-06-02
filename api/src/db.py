@@ -122,7 +122,7 @@ def get_session(settings: s.Settings, session_id: str) -> str | None:
     return pipe.execute()[0]
 
 async def test_postgres(settings: s.Settings) -> bool:
-    async with get_postgres_connection(settings, 'default') as connection:
+    async with get_postgres_connection(settings, 'app_default') as connection:
         result = await connection.execute(al.text("SELECT 1;"))
         
         return result.scalar() == 1
