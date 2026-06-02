@@ -1,33 +1,46 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Type
 import functools
 import time
 import uuid
 
-import redis as r
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 import sqlalchemy as al
+import redis as r
 
 import settings as s
 
-_session_makers: dict[str, al.ext.asyncio.async_sessionmaker] = {}
+_redis_clients: dict[str, r.Redis] = {}
+_session_makers: dict[str, async_sessionmaker] = {}
 
 class DataBaseError(Exception):
     pass
     
 def get_redis_connection(settings: s.Settings, username: str) -> r.Redis:
+    if username in _redis_clients:
+        return _redis_clients[username]
+    
     try:
-        return r.Redis(
-            host=settings.redis_host, 
-            port=settings.redis_port, 
-            db=settings.redis_db,
-            username=username,
-            password=Path(f'/run/secrets/redis_{username}').read_text().strip(),
-            decode_responses=True,
-        )
+        password = Path(f'/run/secrets/redis_{username}').read_text().strip()
     except FileNotFoundError as e:
         raise DataBaseError(f'No credentials for Redis user {username}') from e
     
-async def get_postgres_connection(settings: s.Settings, username: str) -> al.ext.asyncio.AsyncSession:    
+    client = r.Redis(
+        host=settings.redis_host, 
+        port=settings.redis_port, 
+        db=settings.redis_db,
+        username=username,
+        password=password,
+        decode_responses=True,
+    )
+    
+    _redis_clients[username] = client
+    
+    return client
+    
+@asynccontextmanager
+async def get_postgres_connection(settings: s.Settings, username: str) -> AsyncSession:    
     if username in _session_makers:
         session_maker = _session_makers[username]
     else:
@@ -36,15 +49,15 @@ async def get_postgres_connection(settings: s.Settings, username: str) -> al.ext
         except FileNotFoundError as e:
             raise DataBaseError(f'No credentials for Postgres user {username}') from e
         
-        engine = al.ext.asyncio.create_async_engine(
+        engine = create_async_engine(
             f'postgresql+asyncpg://{username}:{password}@{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}',
             pool_size=settings.postgres_pool_size,
             max_overflow=settings.postgres_max_overflow,
         )
         
-        session_maker = al.ext.asyncio.async_sessionmaker(
+        session_maker = async_sessionmaker(
             bind=engine,
-            class_=al.ext.asyncio.AsyncSession,
+            class_=AsyncSession,
             expire_on_commit=False,
         )
         
@@ -107,3 +120,9 @@ def get_session(settings: s.Settings, session_id: str) -> str | None:
     pipe.delete(session_id)
 
     return pipe.execute()[0]
+
+async def test_postgres(settings: s.Settings) -> bool:
+    async with get_postgres_connection(settings, 'default') as connection:
+        result = await connection.execute(al.text("SELECT 1;"))
+        
+        return result.scalar() == 1
