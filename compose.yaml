@@ -24,8 +24,15 @@ services:
     secrets:
       - redis_acl
 
+  postgres:
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
 networks:
   redis:
+
+volumes:
+  - postgres-data:
 
 secrets:
   redis_acl:
