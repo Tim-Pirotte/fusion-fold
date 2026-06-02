@@ -2,24 +2,24 @@ import pydantic as p
 import pydantic_settings as ps
 
 class Settings(ps.BaseSettings):
-    redis_host: str = 'localhost'
-    redis_port: int = p.Field(default=6379, ge=0, le=65_535)
-    redis_db: int = p.Field(default=0, ge=0, le=15)
+    redis_host: str
+    redis_port: int = p.Field(ge=0, le=65_535)
+    redis_db: int = p.Field(ge=0, le=15)
 
     postgres_host: str
-    postgres_port: int = p.Field(default=6379, ge=0, le=65_535)
+    postgres_port: int = p.Field(ge=0, le=65_535)
     postgres_db: str
 
-    session_ttl: int = p.Field(default=60, ge=0)
+    session_ttl: int = p.Field(ge=0)
     
-    min_seq_len: int = p.Field(default=2, ge=1)
-    max_seq_len: int = p.Field(default=1024)
+    min_seq_len: int = p.Field(ge=1)
+    max_seq_len: int
 
-    min_folds: int = p.Field(default=1, ge=1)
-    max_folds: int = p.Field(default=9)
+    min_folds: int = p.Field(ge=1)
+    max_folds: int = p.Field()
 
-    min_steps: int = p.Field(default=1, ge=1)
-    max_steps: int = p.Field(default=25)
+    min_steps: int = p.Field(ge=1)
+    max_steps: int = p.Field()
     
     @p.model_validator(mode='after')
     def validate_ranges(self) -> 'Settings':
