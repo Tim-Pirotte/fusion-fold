@@ -1,0 +1,4 @@
+CREATE DATABASE rna_folding;
+
+CREATE USER default WITH PASSWORD 'example';
+GRANT ALL PRIVILEGES ON DATABASE docker TO default;
