@@ -9,6 +9,8 @@ class Settings(ps.BaseSettings):
     postgres_host: str
     postgres_port: int = p.Field(ge=0, le=65_535)
     postgres_db: str
+    postgres_pool_size: int = p.Field(ge=1)
+    postgres_max_overflow: int = p.Field(ge=-1)
 
     session_ttl: int = p.Field(ge=0)
     
