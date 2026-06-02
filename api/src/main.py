@@ -29,7 +29,7 @@ app.add_middleware(
 settings = s.Settings()
 
 @app.exception_handler(db.DataBaseError)
-async def database_error_handler(request: fa.Request, exc: db.DataBaseError):
+async def database_error_handler(*_):
     logger.error("Database operation failed", exc_info=True)
 
     raise fa.HTTPException(status_code=503, detail='Database service unavailable')
