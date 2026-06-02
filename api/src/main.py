@@ -16,9 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 app = fa.FastAPI(title='RNA Folding API')
 
-origins = [
-    'http://localhost:8000',
-]
+origins = ['http://localhost:8000']
 
 app.add_middleware(
     CORSMiddleware,
@@ -46,7 +44,7 @@ class SessionResponse(p.BaseModel):
     sessionId: str
 
 @app.post(
-    '/v1/folding-sessions/', 
+    '/v1/folding-sessions', 
     response_model=SessionResponse,
 )
 async def generate_folding_session(payload: SessionRequest):
@@ -83,3 +81,10 @@ def folding_streamer(session: SessionRequest) -> typing.Iterator[str]:
         
     except (GeneratorExit, asyncio.CancelledError):
         logger.info('ending folding early due to client disconnect')
+
+@app.get('/test-postgres-connection')
+async def test_postgres_connection():
+    if await db.test_postgres(settings):
+        return { 'status': 'success' }
+    
+    return { 'status': 'failure' }
