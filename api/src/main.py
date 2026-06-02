@@ -31,7 +31,7 @@ settings = s.Settings()
 @app.exception_handler(db.DataBaseError)
 async def database_error_handler(request: fa.Request, exc: db.DataBaseError):
     logger.error("Database operation failed", exc_info=True)
-    
+
     raise fa.HTTPException(status_code=503, detail='Database service unavailable')
 
 class SessionRequest(p.BaseModel):
@@ -44,12 +44,12 @@ class SessionResponse(p.BaseModel):
     sessionId: str
 
 @app.post(
-    '/v1/folding-sessions', 
+    '/v1/folding-sessions',
     response_model=SessionResponse,
 )
 async def generate_folding_session(payload: SessionRequest):
     session_id = db.create_session(settings, payload.model_dump_json())
-    
+
     return { 'sessionId': session_id }
 
 @app.get('/v1/folding-sessions/{session_id}')
@@ -57,10 +57,10 @@ async def stream_folding(
     session_id: str,
 ):
     session_str = db.get_session(settings, session_id)
-    
+
     if not session_str:
         raise fa.HTTPException(status_code=404, detail='Session not found')
-        
+
     session = SessionRequest.model_validate_json(session_str)
 
     return fa.responses.StreamingResponse(folding_streamer(session), media_type='text/event-stream')
@@ -68,17 +68,17 @@ async def stream_folding(
 def folding_streamer(session: SessionRequest) -> typing.Iterator[str]:
     try:
         for fold in f.folding_iterator(
-            session.sequence, 
-            session.folds_to_generate, 
+            session.sequence,
+            session.folds_to_generate,
             session.steps_per_fold,
             session.return_noise,
         ):
             yield f'data: {json.dumps(fold)}\n\n'
 
         logger.info('finished folding')
-        
+
         yield 'event: end\ndata: null\n\n'
-        
+
     except (GeneratorExit, asyncio.CancelledError):
         logger.info('ending folding early due to client disconnect')
 
@@ -86,5 +86,5 @@ def folding_streamer(session: SessionRequest) -> typing.Iterator[str]:
 async def test_postgres_connection():
     if await db.test_postgres(settings):
         return { 'status': 'success' }
-    
+
     return { 'status': 'failure' }
