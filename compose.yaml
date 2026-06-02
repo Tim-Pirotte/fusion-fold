@@ -5,11 +5,13 @@ services:
       - ./api/.env
     networks:
       - redis
+      - postgres
     ports: 
       - 5000:5000
     secrets:
       - redis_write
       - redis_read_delete
+      - postgres_app_default
 
   frontend:
     build: ./frontend
@@ -25,14 +27,22 @@ services:
       - redis_acl
 
   postgres:
+    build: ./postgres
+    env_file:
+      - ./postgres/.env
+    networks:
+      - postgres
     volumes:
       - postgres-data:/var/lib/postgresql
+    secrets:
+      - pg_admin
 
 networks:
   redis:
+  postgres:
 
 volumes:
-  - postgres-data:
+  postgres-data:
 
 secrets:
   redis_acl:
@@ -41,3 +51,8 @@ secrets:
     file: ./redis/write.secret
   redis_read_delete:
     file: ./redis/read_delete.secret
+
+  pg_admin:
+    file: ./postgres/admin.secret
+  postgres_app_default:
+    file: ./postgres/app_default.secret
