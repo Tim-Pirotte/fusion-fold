@@ -46,13 +46,21 @@ class SessionResponse(p.BaseModel):
 @app.post(
     '/v1/folding-sessions',
     response_model=SessionResponse,
+    tags=['folding'],
+    summary='Creates a folding session',
+    description='Creates a new folding session that can be used for streaming at /v1/folding-sessions/{session_id}',
 )
-async def generate_folding_session(payload: SessionRequest):
+async def create_folding_session(payload: SessionRequest):
     session_id = db.create_session(settings, payload.model_dump_json())
 
     return { 'sessionId': session_id }
 
-@app.get('/v1/folding-sessions/{session_id}')
+@app.get(
+    '/v1/folding-sessions/{session_id}',
+    tags=['folding'],
+    summary='Streams a folding session',
+    description='Streams a submitted folding session as server-sent events',
+)
 async def stream_folding(
     session_id: str,
 ):
