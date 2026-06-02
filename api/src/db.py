@@ -9,7 +9,7 @@ import sqlalchemy as al
 
 import settings as s
 
-_session_makers: dict[str, al.orm.sessionmaker] = {}
+_session_makers: dict[str, al.ext.asyncio.async_sessionmaker] = {}
 
 class DataBaseError(Exception):
     pass
@@ -27,11 +27,9 @@ def get_redis_connection(settings: s.Settings, username: str) -> r.Redis:
     except FileNotFoundError as e:
         raise DataBaseError(f'No credentials for Redis user {username}') from e
     
-async def get_postgres_connection(settings: s.Settings, username: str) -> al.ext.asyncio.AsyncSession:
-    global _session_makers
-    
+async def get_postgres_connection(settings: s.Settings, username: str) -> al.ext.asyncio.AsyncSession:    
     if username in _session_makers:
-        session_maker = _session_makers['username']
+        session_maker = _session_makers[username]
     else:
         try:
             password = Path(f'/run/secrets/postgres_{username}').read_text().strip()
@@ -44,13 +42,13 @@ async def get_postgres_connection(settings: s.Settings, username: str) -> al.ext
             max_overflow=settings.postgres_max_overflow,
         )
         
-        session_maker = al.orm.sessionmaker(
+        session_maker = al.ext.asyncio.async_sessionmaker(
             bind=engine,
             class_=al.ext.asyncio.AsyncSession,
             expire_on_commit=False,
         )
         
-        _session_makers['username'] = session_maker
+        _session_makers[username] = session_maker
     
     async with session_maker() as session:
         try:
