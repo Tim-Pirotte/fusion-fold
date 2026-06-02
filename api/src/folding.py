@@ -94,7 +94,7 @@ def folding_iterator(sequence: str, folds_to_generate: int, steps_per_fold: int,
                     coords = torch.sqrt(1 - t_next) * x0_coords_scaled + torch.sqrt(t_next) * noise
 
                     if return_noise:
-                        coords_to_return = (coords * std_dev)
+                        coords_to_return = coords * std_dev
                 else:
                     coords = x0_coords
 
