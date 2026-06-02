@@ -13,16 +13,16 @@ def get_model():
 
     if _model is None:
         _model = RNAConvModel(
-            hidden_size=64, 
+            hidden_size=64,
             n_nucleotides=4,
-            distance_channels=1, 
+            distance_channels=1,
             relational_embedding_length=8,
-            position_encoding_length=8, 
+            position_encoding_length=8,
             time_encoding_length=8,
         )
-        
+
         model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'rna.pt')
-        
+
         _model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
         _model.eval()
 
@@ -81,12 +81,12 @@ def folding_iterator(sequence: str, folds_to_generate: int, steps_per_fold: int,
                 coords_np = distances_to_coords(pred_np)
                 x0_coords = torch.from_numpy(coords_np).float()[None, :, :]
                 x0_coords -= x0_coords.mean(dim=1, keepdim=True)
-                
+
                 mask = ~np.eye(pred_np.shape[0], dtype=bool)
                 std_dev = pred_np[mask].std() + 1e-6
 
                 coords_to_return = x0_coords
-                
+
                 if t_next > 0:
                     x0_coords_scaled = x0_coords / std_dev
                     noise = torch.randn_like(x0_coords_scaled)
@@ -117,15 +117,15 @@ class SinusoidalEncoding(torch.nn.Module):
     def forward(self, x):
         device = x.device
         half_dim = self.embedding_dim // 2
-        
+
         freqs = torch.exp(
             -torch.arange(0, half_dim, device=device) * (math.log(10000.0) / (half_dim - 1))
         )
-        
+
         args = x.unsqueeze(-1) * freqs
-        
+
         return torch.cat([torch.sin(args), torch.cos(args)], dim=-1)
-    
+
 class ResBlock(torch.nn.Module):
     def __init__(self, channels, kernel_size=3, dilation=1):
         super().__init__()
@@ -139,7 +139,7 @@ class ResBlock(torch.nn.Module):
 
     def forward(self, x):
         residual = x
-        
+
         x = self.conv1(x)
         x = self.norm1(x)
         x = self.act1(x)
@@ -150,13 +150,13 @@ class ResBlock(torch.nn.Module):
 
 class RNAConvModel(torch.nn.Module):
     def __init__(
-            self,  
-            hidden_size, 
+            self,
+            hidden_size,
             n_nucleotides,
-            distance_channels, 
+            distance_channels,
             relational_embedding_length,
-            position_encoding_length, 
-            time_encoding_length, 
+            position_encoding_length,
+            time_encoding_length,
     ):
         super().__init__()
 
@@ -166,7 +166,7 @@ class RNAConvModel(torch.nn.Module):
         self.position_encoding = SinusoidalEncoding(position_encoding_length)
 
         input_channels = distance_channels + relational_embedding_length + position_encoding_length + time_encoding_length
-        
+
         self.stem = torch.nn.Sequential(
             torch.nn.Conv2d(input_channels, hidden_size, kernel_size=1),
             torch.nn.GroupNorm(8, hidden_size),
@@ -216,16 +216,16 @@ class RNAConvModel(torch.nn.Module):
         x = self.res3(x)
         x = self.res4(x)
         x = self.res5(x)
-        x = self.res6(x) 
+        x = self.res6(x)
         x = self.res7(x)
         x = self.res8(x)
         x = self.res9(x)
         x = self.res10(x)
         x = self.res11(x)
         x = self.res12(x)
-        
+
         x = self.head(x)
-        
+
         x = torch.tril(x, diagonal=-1)
 
         return x + x.transpose(-1, -2)

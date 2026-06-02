@@ -13,7 +13,7 @@ class Settings(ps.BaseSettings):
     postgres_max_overflow: int = p.Field(ge=-1)
 
     session_ttl: int = p.Field(ge=0)
-    
+
     min_seq_len: int = p.Field(ge=1)
     max_seq_len: int
 
@@ -22,7 +22,7 @@ class Settings(ps.BaseSettings):
 
     min_steps: int = p.Field(ge=1)
     max_steps: int = p.Field()
-    
+
     @p.model_validator(mode='after')
     def validate_ranges(self) -> 'Settings':
         fields = ['seq_len', 'folds', 'steps']
@@ -30,10 +30,10 @@ class Settings(ps.BaseSettings):
         for field in fields:
             min_v = getattr(self, f'min_{field}')
             max_v = getattr(self, f'max_{field}')
-            
+
             if max_v < min_v:
                 raise ValueError(f'{field} has a higher max than min')
-        
+
         return self
 
     class Config:

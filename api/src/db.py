@@ -16,31 +16,31 @@ _session_makers: dict[str, async_sessionmaker] = {}
 
 class DataBaseError(Exception):
     pass
-    
+
 def get_redis_connection(settings: s.Settings, username: str) -> r.Redis:
     if username in _redis_clients:
         return _redis_clients[username]
-    
+
     try:
         password = Path(f'/run/secrets/redis_{username}').read_text().strip()
     except FileNotFoundError as e:
         raise DataBaseError(f'No credentials for Redis user {username}') from e
-    
+
     client = r.Redis(
-        host=settings.redis_host, 
-        port=settings.redis_port, 
+        host=settings.redis_host,
+        port=settings.redis_port,
         db=settings.redis_db,
         username=username,
         password=password,
         decode_responses=True,
     )
-    
+
     _redis_clients[username] = client
-    
+
     return client
-    
+
 @asynccontextmanager
-async def get_postgres_connection(settings: s.Settings, username: str) -> AsyncSession:    
+async def get_postgres_connection(settings: s.Settings, username: str) -> AsyncSession:
     if username in _session_makers:
         session_maker = _session_makers[username]
     else:
@@ -48,21 +48,21 @@ async def get_postgres_connection(settings: s.Settings, username: str) -> AsyncS
             password = Path(f'/run/secrets/postgres_{username}').read_text().strip()
         except FileNotFoundError as e:
             raise DataBaseError(f'No credentials for Postgres user {username}') from e
-        
+
         engine = create_async_engine(
             f'postgresql+asyncpg://{username}:{password}@{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}',
             pool_size=settings.postgres_pool_size,
             max_overflow=settings.postgres_max_overflow,
         )
-        
+
         session_maker = async_sessionmaker(
             bind=engine,
             class_=AsyncSession,
             expire_on_commit=False,
         )
-        
+
         _session_makers[username] = session_maker
-    
+
     async with session_maker() as session:
         try:
             yield session
@@ -78,7 +78,7 @@ def handle_redis_errors(func):
             return func(*args, **kwargs)
         except r.RedisError as e:
             raise DataBaseError('Database operation failed') from e
-        
+
     return wrapper
 
 def retry_on_error(retries: int, delay_s: float, exceptions: Type[BaseException] | tuple[Type[BaseException], ...]):
@@ -88,7 +88,7 @@ def retry_on_error(retries: int, delay_s: float, exceptions: Type[BaseException]
             for attempt in range(retries + 1):
                 try:
                     return func(*args, **kwargs)
-                except exceptions:                    
+                except exceptions:
                     if attempt == retries:
                         raise
 
@@ -104,7 +104,7 @@ def retry_on_error(retries: int, delay_s: float, exceptions: Type[BaseException]
 @retry_on_error(1, 2, (r.ConnectionError, r.TimeoutError))
 def create_session(settings: s.Settings, data: str) -> str:
     session_id = str(uuid.uuid4())
-    
+
     connection = get_redis_connection(settings, 'write')
     connection.setex(session_id, settings.session_ttl, data)
 
@@ -114,7 +114,7 @@ def create_session(settings: s.Settings, data: str) -> str:
 @retry_on_error(1, 2, (r.ConnectionError, r.TimeoutError))
 def get_session(settings: s.Settings, session_id: str) -> str | None:
     connection = get_redis_connection(settings, 'read_delete')
-    
+
     pipe = connection.pipeline()
     pipe.get(session_id)
     pipe.delete(session_id)
@@ -124,5 +124,5 @@ def get_session(settings: s.Settings, session_id: str) -> str | None:
 async def test_postgres(settings: s.Settings) -> bool:
     async with get_postgres_connection(settings, 'app_default') as connection:
         result = await connection.execute(al.text("SELECT 1;"))
-        
+
         return result.scalar() == 1
