@@ -7,9 +7,6 @@ import uuid
 import redis as r
 
 import settings as s
-
-WRITE_USER = 'write'
-READ_DELETE_USER = 'read_delete'
     
 def get_connection(settings: s.Settings, username: str) -> r.Redis:
     return r.Redis(
@@ -58,7 +55,7 @@ def retry_on_error(retries: int, delay_s: float, exceptions: Type[BaseException]
 def create_session(settings: s.Settings, data: str) -> str:
     session_id = str(uuid.uuid4())
     
-    connection = get_connection(settings, WRITE_USER)
+    connection = get_connection(settings, 'write')
     connection.setex(session_id, settings.session_ttl, data)
 
     return session_id
@@ -66,7 +63,7 @@ def create_session(settings: s.Settings, data: str) -> str:
 @handle_redis_errors
 @retry_on_error(1, 2, (r.ConnectionError, r.TimeoutError))
 def get_session(settings: s.Settings, session_id: str) -> str | None:
-    connection = get_connection(settings, READ_DELETE_USER)
+    connection = get_connection(settings, 'read_delete')
     
     pipe = connection.pipeline()
     pipe.get(session_id)

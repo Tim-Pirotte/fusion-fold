@@ -6,6 +6,10 @@ class Settings(ps.BaseSettings):
     redis_port: int = p.Field(default=6379, ge=0, le=65_535)
     redis_db: int = p.Field(default=0, ge=0, le=15)
 
+    postgres_host: str
+    postgres_port: int = p.Field(default=6379, ge=0, le=65_535)
+    postgres_db: str
+
     session_ttl: int = p.Field(default=60, ge=0)
     
     min_seq_len: int = p.Field(default=2, ge=1)
