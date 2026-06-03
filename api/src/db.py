@@ -146,3 +146,18 @@ async def create_account(settings: s.Settings, display_name: str, mail: str) -> 
         await connection.flush()
 
         return account.id
+
+async def complete_account(settings: s.Settings, account_id: int, hash: bytes) -> bool:
+    async with get_postgres_connection(settings, 'app_default') as connection:
+        account = await connection.get(m.Account, account_id)
+
+        if account is None:
+            return False
+
+        if account.status != m.AccountStatus.unverified:
+             return False
+
+        account.password_hash = hash
+        account.status = m.AccountStatus.enabled
+
+        return True

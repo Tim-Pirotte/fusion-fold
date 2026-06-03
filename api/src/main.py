@@ -1,6 +1,8 @@
 import json
 import typing
 import logging
+import secrets
+import hashlib
 import asyncio
 
 import pydantic as p
@@ -118,10 +120,46 @@ class CompleteAccountRequest(p.BaseModel):
     password: str
 
 @app.patch(
-    '/v1/accounts/{token:path}',
+    '/v1/accounts/{token}',
     tags=['accounts'],
     summary='Completes a created account',
     description='Completes an account with a password and changes the account status from unverified to enabled',
 )
 async def complete_account(token: str, request: CompleteAccountRequest):
-    return 200
+    try:
+        data = serializer.loads(token, max_age=86400)
+    except SignatureExpired:
+        raise fa.HTTPException(status_code=fa.status.HTTP_410_GONE)
+    except BadSignature:
+        raise fa.HTTPException(status_code=fa.status.HTTP_400_BAD_REQUEST)
+
+    if data.get('action') != 'verify_and_set_password':
+        raise fa.HTTPException(status_code=fa.status.HTTP_400_BAD_REQUEST)
+
+    account_id = data.get('account_id')
+
+    if account_id is None:
+        raise fa.HTTPException(status_code=fa.status.HTTP_400_BAD_REQUEST)
+
+    if not (8 <= len(request.password) <= 16):
+        raise fa.HTTPException(status_code=fa.status.HTTP_400_BAD_REQUEST)
+
+    salt = secrets.token_bytes(32)
+
+    # https://stackoverflow.com/questions/64399830/what-are-recommended-minimum-parameters-for-hashlib-scrypt
+    key = hashlib.scrypt(
+        request.password.encode(),
+        salt=salt,
+        n=16384,
+        r=8,
+        p=1,
+        maxmem=32 * 1024 * 1024,
+        dklen=64
+    )
+
+    password_hash = salt + key
+
+    if not await db.complete_account(settings, account_id, password_hash):
+        raise fa.HTTPException(status_code=fa.status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    return fa.Response(status_code=fa.status.HTTP_200_OK)
