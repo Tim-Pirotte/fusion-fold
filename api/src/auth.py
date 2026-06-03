@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from typing import Any
 import secrets
 import hashlib
 
@@ -29,3 +30,9 @@ def get_auth_token(account_id: int) -> str:
     }
 
     return jwt.encode(token_data, 'secret', algorithm='HS256')
+
+def get_auth_token_data(token: str) -> dict[str, Any] | None:
+    try:
+        return jwt.decode(token, 'secret', algorithm='HS256')
+    except jwt.PyJWTError:
+        return None
