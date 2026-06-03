@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Type
+from enum import Enum
 import functools
 import time
 import uuid
@@ -10,6 +11,7 @@ import sqlalchemy as al
 import redis as r
 
 import settings as s
+import models as m
 
 _redis_clients: dict[str, r.Redis] = {}
 _session_makers: dict[str, async_sessionmaker] = {}
@@ -126,3 +128,25 @@ async def test_postgres(settings: s.Settings) -> bool:
         result = await connection.execute(al.text("SELECT 1;"))
 
         return result.scalar() == 1
+
+class CreateAccountResult(Enum):
+    OK = 1
+    ALREADY_EXISTS = 2
+
+async def create_account(settings: s.Settings, display_name: str, mail: str) -> CreateAccountResult:
+    async with get_postgres_connection(settings, 'app_default') as connection:
+        existing = await connection.execute(al.select(m.Account).where(m.Account.mail == mail))
+
+        if existing.scalar_one_or_none():
+            return CreateAccountResult.ALREADY_EXISTS
+
+        account = m.Account(
+            display_name=display_name,
+            mail=mail,
+            status=m.AccountStatus.unverified
+        )
+
+        connection.add(account)
+        await connection.flush()
+
+        return CreateAccountResult.OK
