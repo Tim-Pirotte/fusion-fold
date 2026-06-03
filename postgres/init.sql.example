@@ -1,4 +1,16 @@
-CREATE DATABASE rna_folding;
+REVOKE CONNECT ON DATABASE rna_folding FROM PUBLIC;
+REVOKE CONNECT ON DATABASE rna_folding FROM postgres;
 
-CREATE USER default WITH PASSWORD 'example';
-GRANT ALL PRIVILEGES ON DATABASE docker TO default;
+CREATE USER app_default WITH PASSWORD 'example';
+GRANT ALL PRIVILEGES ON DATABASE rna_folding TO app_default;
+GRANT CONNECT ON DATABASE rna_folding TO app_default;
+
+CREATE TYPE account_status AS ENUM ('enabled', 'disabled', 'unverified');
+
+CREATE TABLE accounts (
+    id SERIAL PRIMARY KEY,
+    display_name  VARCHAR(255) NOT NULL,
+    mail          VARCHAR(255) NOT NULL UNIQUE,
+    password_hash BYTEA,
+    status        account_status NOT NULL DEFAULT 'unverified',
+);
