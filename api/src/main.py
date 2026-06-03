@@ -1,8 +1,6 @@
 import json
 import typing
 import logging
-import secrets
-import hashlib
 import asyncio
 
 import pydantic as p
@@ -11,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 import db
+import auth as a
 import mail as m
 import folding as f
 import settings as s
@@ -130,7 +129,7 @@ class CompleteAccountRequest(p.BaseModel):
         422: { 'description': 'Account does not exist or status is not \'unverified\'' },
     },
 )
-async def complete_account(token: str, request: CompleteAccountRequest):
+async def complete_account(token: str, request: CompleteAccountRequest, response: fa.Response):
     try:
         data = serializer.loads(token, max_age=86400)
     except SignatureExpired:
@@ -149,23 +148,18 @@ async def complete_account(token: str, request: CompleteAccountRequest):
     if not (8 <= len(request.password) <= 16):
         return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
-    salt = secrets.token_bytes(32)
+    hashed_password = a.hash_password(request.password)
 
-    # https://stackoverflow.com/questions/64399830/what-are-recommended-minimum-parameters-for-hashlib-scrypt
-    key = hashlib.scrypt(
-        request.password.encode(),
-        salt=salt,
-        n=16384,
-        r=8,
-        p=1,
-        maxmem=32 * 1024 * 1024,
-        dklen=64
-    )
-
-    password_hash = salt + key
-
-    if not await db.complete_account(settings, account_id, password_hash):
+    if not await db.complete_account(settings, account_id, hashed_password):
         return fa.Response(status_code=fa.status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    response.set_cookie(
+        key='auth_token',
+        value=a.get_auth_token(account_id),
+        httponly=True,
+        secure=False, # To allow HTTP
+        samesite='lax'
+    )
 
     return fa.Response(status_code=fa.status.HTTP_200_OK)
 
