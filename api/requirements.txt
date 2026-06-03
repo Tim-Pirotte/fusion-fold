@@ -8,3 +8,4 @@ uvicorn==0.48.0
 SQLAlchemy==2.0.50
 asyncpg==0.31.0
 greenlet==3.5.1
+itsdangerous==2.2.0

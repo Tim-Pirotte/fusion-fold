@@ -130,15 +130,22 @@ async def test_postgres(settings: s.Settings) -> bool:
         return result.scalar() == 1
 
 class CreateAccountResult(Enum):
-    OK = 1
-    ALREADY_EXISTS = 2
+    OK                  = 1
+    ALREADY_EXISTS      = 2
+    RESENT_VERIFICATION = 3
 
-async def create_account(settings: s.Settings, display_name: str, mail: str) -> CreateAccountResult:
+async def create_account(settings: s.Settings, display_name: str, mail: str) -> (CreateAccountResult, int | None):
     async with get_postgres_connection(settings, 'app_default') as connection:
         existing = await connection.execute(al.select(m.Account).where(m.Account.mail == mail))
+        existing_account = existing.scalar_one_or_none()
 
-        if existing.scalar_one_or_none():
-            return CreateAccountResult.ALREADY_EXISTS
+        if existing_account:
+            if existing_account.status == m.AccountStatus.unverified:
+                existing_account.display_name = display_name
+
+                return CreateAccountResult.RESENT_VERIFICATION, existing_account.id
+
+            return CreateAccountResult.ALREADY_EXISTS, None
 
         account = m.Account(
             display_name=display_name,
@@ -149,4 +156,4 @@ async def create_account(settings: s.Settings, display_name: str, mail: str) -> 
         connection.add(account)
         await connection.flush()
 
-        return CreateAccountResult.OK
+        return CreateAccountResult.OK, account.id
