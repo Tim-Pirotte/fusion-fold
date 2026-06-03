@@ -134,20 +134,20 @@ async def complete_account(token: str, request: CompleteAccountRequest):
     try:
         data = serializer.loads(token, max_age=86400)
     except SignatureExpired:
-        raise fa.HTTPException(status_code=fa.status.HTTP_410_GONE)
+        return fa.Response(status_code=fa.status.HTTP_410_GONE)
     except BadSignature:
-        raise fa.HTTPException(status_code=fa.status.HTTP_400_BAD_REQUEST)
+        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
     if data.get('action') != 'verify_and_set_password':
-        raise fa.HTTPException(status_code=fa.status.HTTP_400_BAD_REQUEST)
+        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
     account_id = data.get('account_id')
 
     if account_id is None:
-        raise fa.HTTPException(status_code=fa.status.HTTP_400_BAD_REQUEST)
+        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
     if not (8 <= len(request.password) <= 16):
-        raise fa.HTTPException(status_code=fa.status.HTTP_400_BAD_REQUEST)
+        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
     salt = secrets.token_bytes(32)
 
@@ -165,6 +165,28 @@ async def complete_account(token: str, request: CompleteAccountRequest):
     password_hash = salt + key
 
     if not await db.complete_account(settings, account_id, password_hash):
-        raise fa.HTTPException(status_code=fa.status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return fa.Response(status_code=fa.status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     return fa.Response(status_code=fa.status.HTTP_200_OK)
+
+class GetAccountResponse(p.BaseModel):
+    display_name: str
+    mail: str
+
+@app.get(
+    '/v1/accounts/{account_id:int}',
+    response_model=GetAccountResponse,
+    tags=['accounts'],
+    summary='Retrieves account data of the current session',
+    description='Retrieves the account data of the currently logged in user',
+)
+async def get_account(account_id):
+    account = await db.get_account(settings, account_id)
+
+    if account is None:
+        return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
+
+    return {
+        "display_name": account.display_name,
+        "mail": account.mail,
+    }
