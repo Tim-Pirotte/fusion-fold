@@ -24,7 +24,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=['GET', 'POST'],
+    allow_methods=['GET', 'POST', 'PATCH'],
     allow_headers=['*'],
 )
 
@@ -118,10 +118,10 @@ class CompleteAccountRequest(p.BaseModel):
     password: str
 
 @app.patch(
-    'v1/accounts/{token}',
+    '/v1/accounts/{token:path}',
     tags=['accounts'],
     summary='Completes a created account',
     description='Completes an account with a password and changes the account status from unverified to enabled',
 )
 async def complete_account(token: str, request: CompleteAccountRequest):
-    pass
+    return 200
