@@ -93,13 +93,6 @@ def folding_streamer(session: SessionRequest) -> typing.Iterator[str]:
     except (GeneratorExit, asyncio.CancelledError):
         logger.info('ending folding early due to client disconnect')
 
-@app.get('/test-postgres-connection')
-async def test_postgres_connection():
-    if await db.test_postgres(settings):
-        return { 'status': 'success' }
-
-    return { 'status': 'failure' }
-
 class CreateAccountRequest(p.BaseModel):
     display_name: str
     mail: str
@@ -111,9 +104,9 @@ class CreateAccountRequest(p.BaseModel):
     description='Creates an account and sends an e-mail to verify the address and set a password',
 )
 async def create_account(request: CreateAccountRequest):
-    result, account_id = await db.create_account(settings, request.display_name, request.mail)
+    account_id = await db.create_account(settings, request.display_name, request.mail)
 
-    if result in (db.CreateAccountResult.OK, db.CreateAccountResult.RESENT_VERIFICATION):
+    if account_id:
         token = serializer.dumps({'account_id': account_id, 'action': 'verify_and_set_password'})
         m.send_mock_verification_mail(request.mail, token)
 

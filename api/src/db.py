@@ -123,18 +123,7 @@ def get_session(settings: s.Settings, session_id: str) -> str | None:
 
     return pipe.execute()[0]
 
-async def test_postgres(settings: s.Settings) -> bool:
-    async with get_postgres_connection(settings, 'app_default') as connection:
-        result = await connection.execute(al.text("SELECT 1;"))
-
-        return result.scalar() == 1
-
-class CreateAccountResult(Enum):
-    OK                  = 1
-    ALREADY_EXISTS      = 2
-    RESENT_VERIFICATION = 3
-
-async def create_account(settings: s.Settings, display_name: str, mail: str) -> (CreateAccountResult, int | None):
+async def create_account(settings: s.Settings, display_name: str, mail: str) -> int | None:
     async with get_postgres_connection(settings, 'app_default') as connection:
         existing = await connection.execute(al.select(m.Account).where(m.Account.mail == mail))
         existing_account = existing.scalar_one_or_none()
@@ -143,9 +132,9 @@ async def create_account(settings: s.Settings, display_name: str, mail: str) -> 
             if existing_account.status == m.AccountStatus.unverified:
                 existing_account.display_name = display_name
 
-                return CreateAccountResult.RESENT_VERIFICATION, existing_account.id
+                return existing_account.id
 
-            return CreateAccountResult.ALREADY_EXISTS, None
+            return None
 
         account = m.Account(
             display_name=display_name,
@@ -156,4 +145,4 @@ async def create_account(settings: s.Settings, display_name: str, mail: str) -> 
         connection.add(account)
         await connection.flush()
 
-        return CreateAccountResult.OK, account.id
+        return account.id
