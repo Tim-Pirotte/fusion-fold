@@ -1,0 +1,37 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+
+name: training
+display_name: RNA Model Training
+version: 6
+type: command
+
+inputs:
+  train_path:
+    type: uri_file
+  val_path:
+    type: uri_file
+  experiment_name:
+    type: string
+    default: rna_experiment
+  epochs:
+    type: integer
+    default: 350
+  checkpoint_path:
+    type: uri_file
+    optional: true
+
+outputs:
+  output_dir:
+    type: uri_folder
+
+code: ./code
+
+environment: azureml:rna-env:1
+
+command: >-
+  python train.py
+  --train_path ${{inputs.train_path}}
+  --val_path ${{inputs.val_path}}
+  --experiment_name ${{inputs.experiment_name}}
+  --epochs ${{inputs.epochs}}
+  --output_dir ${{outputs.output_dir}}

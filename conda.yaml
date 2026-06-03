@@ -1,0 +1,25 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+
+name: rna-env
+version: 1
+description: Environment for RNA folding pipeline
+
+image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu22.04
+
+conda_file:
+  name: rna-env
+  channels:
+    - defaults
+  dependencies:
+    - python=3.10
+    - pip
+    - pip:
+      - torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
+      - pandas
+      - numpy
+      - scipy
+      - scikit-learn
+      - pyarrow
+      - matplotlib
+      - azureml-core
+      - azureml-mlflow
