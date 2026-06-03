@@ -1,0 +1,471 @@
+@font-face {
+    font-family: defaultFont;
+    src: url(../fonts/roboto.ttf);
+}
+
+@keyframes slide {
+    from { background-position: 0 0; }
+    to { background-position: 3rem 0; }
+}
+
+body {
+    display: flex;
+    font-family: defaultFont;
+
+    @media (max-aspect-ratio: 1/1) {
+        flex-direction: column;
+    }
+
+    > main {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        position: relative;
+
+        @media (max-aspect-ratio: 1/1) {
+            flex: 1 1 40vh;
+        }
+        
+        > section {
+            position: absolute;
+            width: 10rem;
+            margin: 0.5rem;
+            padding: 0.5rem;
+            background-color: white;
+            border-radius: 0.25rem;
+            box-shadow: 0.25rem 0.25rem 0.0625rem -0.0625rem rgba(0,0,0,0.15);
+
+            @media (max-aspect-ratio: 1/1) {
+                padding: 0.25rem;
+            }
+
+            > h2 {
+                margin-bottom: 0.5rem;
+
+                @media (max-aspect-ratio: 1/1) {
+                    margin-bottom: 0.25rem;
+                    font-size: small;
+                }
+            }
+            
+            > #objects {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+
+                @media (max-aspect-ratio: 1/1) {
+                    gap: 0.25rem;
+                }
+
+                > li {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+
+                    @media (max-aspect-ratio: 1/1) {
+                        gap: 0.25rem;
+                    }
+
+                    > input {
+                        padding: 0.1rem;
+                        width: 4.4rem;
+                        font-size: 0.75rem;
+                        border: 0.1rem solid #ff9800;
+                        border-radius: 0.2rem;
+
+                        &[type="color"] {
+                            outline: none;
+                            border: none;
+                            background: none;
+                            width: 1.25rem;
+                            height: 1.25rem;
+                            border-radius: 50%;
+                            cursor: pointer;
+
+                            &::-webkit-color-swatch-wrapper {
+                                padding: 0;
+                            }
+
+                            &::-webkit-color-swatch {
+                                border: none;
+                                border-radius: 50%;
+                            }
+                        }
+                    }
+
+                    > label {
+                        display: block;
+                        margin-left: auto;
+
+                        > input {
+                            display: none;
+                        }
+
+                        > img {
+                            width: 1.25rem;
+                            display: block;
+                        }
+
+                        > input:not(:checked) + img {
+                            filter: grayscale(1);
+                        }
+
+                        &:hover {
+                            cursor: pointer;
+                        }
+                    }
+
+                    > button {
+                        padding: 0;
+                        background: none;
+                        border: none;
+
+                        > img {
+                            width: 1.25rem;
+                            display: block;
+                        }
+
+                        &:hover {
+                            cursor: pointer;
+                        }
+                    }
+                }
+            }
+        }
+
+        > canvas {
+            width: 100%;
+            height: 100%;
+        }
+    }
+
+    > section {
+        flex: 0 0 25vw;
+        height: 100vh;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+        box-sizing: border-box;
+        box-shadow: 0.25rem 0.125rem 0.0625rem 0 rgba(0,0,0,0.15) inset;
+
+        @media (max-aspect-ratio: 1/1) {
+            flex: 1 1 60vh;
+            padding: 0.5rem;
+        }
+
+        > h1 {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: larger;
+
+            @media (max-aspect-ratio: 1/1) {
+                margin-bottom: 0.5rem;
+                font-size: large;
+            }
+        }
+
+        > form {
+            display: flex;
+            flex-direction: column;
+            flex: 1 0 auto;
+            gap: 1rem;
+
+            @media (max-aspect-ratio: 1/1) {
+                gap: 0.5rem;
+            }
+
+            > fieldset {
+                > legend, > #sequence-header, > #configure-header {
+                    font-size: large;
+                    margin-bottom: 0.5rem;
+
+                    @media (max-aspect-ratio: 1/1) {
+                        font-size: medium;
+                        margin-bottom: 0.25rem;
+                    }
+                }
+
+                > #sequence-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.25rem;
+                    
+                    > .upload-container {
+                        &:hover {
+                            transform: scale(1.05);
+                            cursor: pointer;
+                        }
+
+                        > label {
+                            display: block;
+                            cursor: pointer;
+
+                            > img {
+                                display: block;
+                                width: 1.25rem;
+                            }
+                        }
+
+                        > #rna-upload {
+                            display: none;
+                        }
+                    }
+                }
+
+                > #configure-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.25rem;
+
+                    > button {
+                        color: black;
+                        background: none;
+                        border: none;
+                        padding: 0;
+                        
+                        > img {
+                            display: block;
+                            width: 1.25rem;
+
+                            &:hover {
+                                transform: scale(1.05);
+                                cursor: pointer;
+                            }
+                        }
+                    }
+                }
+
+                > label {
+                    display: block;
+                    margin-top: 0.5rem;
+                }
+
+                > label, > input, > .range-value > input {
+                    font-size: medium;
+
+                    @media (max-aspect-ratio: 1/1) {
+                        font-size: small;
+                    }
+                }
+
+                > input, > .range-value > input, > textarea, > select {
+                    border: 0.1rem solid #ff9800;
+                    border-radius: 0.2rem;
+                    accent-color: #ff9800;
+
+                    &[type="number"] {
+                        width: 2rem;
+                    }
+                }
+
+                > .range-value {
+                    display: flex;
+                    align-items: center;
+                }
+
+                > textarea {
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+
+                > button {
+                    display: block;
+                    padding: 0.5rem;
+                    border: none;
+                    background-color: #ff9800;
+                    box-shadow: 0.25rem 0.25rem 0.0625rem -0.0625rem rgba(0,0,0,0.15);
+                    color: white;
+                    font-weight: bold;
+                    border-radius: 0.25rem;
+                    transition: background-color 0.3s ease-in-out, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+                    @media (max-aspect-ratio: 1/1) {
+                        padding: 0.4rem;
+                        font-size: small;
+                    }
+
+                    &:hover {
+                        background-color: #ffa114;
+                        transform: scale(1.05);
+                        cursor: pointer;
+                    }
+
+                    &:disabled {
+                        filter: grayscale(1);
+                        cursor: not-allowed;
+                    }
+                }
+
+                &:last-child {
+                    margin-top: auto;
+                }
+            }
+        }
+
+        > section {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+
+            > #overview-header {
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+                margin-bottom: 1rem;
+                
+                > button {
+                    display: block;
+                    padding: 0.5rem;
+                    border: none;
+                    background-color: #ff9800;
+                    box-shadow: 0.25rem 0.25rem 0.0625rem -0.0625rem rgba(0,0,0,0.15);
+                    color: white;
+                    font-weight: bold;
+                    border-radius: 0.25rem;
+                    transition: background-color 0.3s ease-in-out, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+                    &.cancel {
+                        background-color: #ff1100;
+                    }
+
+                    @media (max-aspect-ratio: 1/1) {
+                        padding: 0.4rem;
+                        font-size: small;
+                    }
+
+                    &:hover {
+                        background-color: #ffa114;
+                        transform: scale(1.05);
+                        cursor: pointer;
+
+                        &.cancel {
+                            background-color: #ff3c2e;
+                        }
+                    }
+                }
+
+                > h2 {
+                    font-size: large;
+                }
+            }
+
+            > section {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+
+                > h3 {
+                    font-size: large;
+                }
+
+                > #distance-maps-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.25rem;
+
+                    > p {
+                        writing-mode: vertical-rl;
+
+                        &:first-of-type {
+                            color: #0067FF;
+                        }
+
+                        &:last-of-type {
+                            color: #ff9800;
+                        }
+                    }
+
+                    > #distance-maps {
+                        border: 0.2rem solid;
+                        border-color: #ff9800 #ff9800 #0067FF #0067FF;
+                        border-radius: 0.25rem;
+                        width: 13rem;
+                        height: 13rem;
+                        background-color: #440154;
+
+                        > .distance-map {
+                            display: none;
+                            width: 13rem;
+                            height: 13rem;
+                            image-rendering: pixelated;
+                            box-shadow: 0.25rem 0.25rem 0.0625rem -0.0625rem rgba(0,0,0,0.15);
+                        
+                            &.active {
+                                display: block;
+                            }
+                        }
+                    }
+                }
+
+                > #distance-map-navigation {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+
+                    > button {
+                        display: block;
+                        width: 5rem;
+                        padding: 0.5rem;
+                        border: none;
+                        background-color: #ff9800;
+                        box-shadow: 0.25rem 0.25rem 0.0625rem -0.0625rem rgba(0,0,0,0.15);
+                        color: white;
+                        font-weight: bold;
+                        border-radius: 0.25rem;
+                        transition: background-color 0.3s ease-in-out, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+                        @media (max-aspect-ratio: 1/1) {
+                            padding: 0.4rem;
+                            font-size: small;
+                        }
+
+                        &:hover {
+                            background-color: #ffa114;
+                            transform: scale(1.05);
+                            cursor: pointer;
+                        }
+                    }
+                }
+            }
+
+            > .progress-bar-bg {
+                margin-top: auto;
+                width: 100%;
+                height: 1rem;
+                border-radius: 0.85rem;
+                border: 0.15rem solid white;
+                background-color: white;
+                box-shadow: 0.25rem 0.25rem 0.0625rem -0.0625rem rgba(0,0,0,0.15);
+                overflow: hidden;
+                position: relative;
+
+                > #progress-bar {
+                    width: 0%;
+                    height: 100%;
+                    background-color: #ffa114;
+                    background-image: linear-gradient(
+                        45deg, 
+                        rgba(255, 255, 255, 0.2) 25%, 
+                        transparent 25%, 
+                        transparent 50%, 
+                        rgba(255, 255, 255, 0.2) 50%, 
+                        rgba(255, 255, 255, 0.2) 75%, 
+                        transparent 75%, 
+                        transparent
+                    );
+                    background-size: 3rem 3rem;
+                    transition: width 0.3s ease;
+                    animation: slide 1.5s linear infinite;
+
+                    &.finished {
+                        background-color: #72ff14;
+                        animation-play-state: paused;
+                    }
+                }
+            }
+        }
+    }
+}

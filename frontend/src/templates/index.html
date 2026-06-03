@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Predict the positions of C1' atoms of RNA sequences">
+    <meta name="keywords" content="RNA, RNA folding, diffusion">
+    <meta name="author" content="Pirotte Tim, Windels Maxim">
+    <title>RNA Folding</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/screen.css') }}">
+    <script src="{{ url_for('static', filename='js/lib/svd.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</head>
+<body>
+    <main>
+        <section>
+            <h2>Objects</h2>
+            <ol id="objects">
+                <template id="object">
+                    <li>
+                        <input type="text" class="name" placeholder="e.g. Not named" value="Not named" />
+                        <input type="color" class="color" />
+                        <label>
+                            <input type="checkbox" class="visible" checked />
+                            <img src="{{ url_for('static', filename='images/visible.svg') }}" alt="Visible" />
+                        </label>
+                        <button type="button">
+                            <img src="{{ url_for('static', filename='images/delete.svg') }}" alt="Delete" />
+                        </button>
+                    </li>
+                </template>
+            </ol>
+        </section>
+    </main>
+    <section>
+        <h1>RNA Folding</h1>
+        <form id="folding-form">
+            <fieldset>
+                <div id="sequence-header">
+                    <legend>Load Sequence</legend>
+                    <div class="upload-container">
+                        <label for="rna-upload">
+                            <img src="{{ url_for('static', filename='images/upload.svg') }}" alt="Upload" />
+                        </label>
+                        <input type="file" id="rna-upload" accept=".rna">
+                    </div>
+                </div>
+                <textarea id="sequence" rows="5" maxlength="1024" required placeholder="e.g. CGCCCGGAUAGCUCAGUCGGUAGAGCAGCGGCUAAAACAGCUCUGGGGUUGUACCCACCCCAGAGGCCCACGUGGCGGCUAGUACUCCGGUAUUGCGGUACCCUUGUACGCCUGUUUUAGCCGCGGGUCCAGGGUUCAAGUCCCUGUUCGGGCGCCA"></textarea>
+            </fieldset>
+            <fieldset>
+                <div id="configure-header">
+                    <legend>Configure</legend>
+                    <button type="button" id="restore">
+                        <img src="{{ url_for('static', filename='images/restore.svg') }}" alt="Restore" />
+                    </button>
+                </div>
+                <label for="name">Name</label>
+                <input type="text" id="name" autocomplete="off" placeholder="e.g. Prediction" value="Prediction" />
+                <label for="folds">Folds to generate</label>
+                <div class="range-value">
+                    <input type="range" id="folds" data-sync="folds" min="1" max="9" value="3" />
+                    <input type="number" id="folds-number" data-sync="folds" placeholder="e.g. 3" min="1" value="3" required />
+                </div>
+                <label for="steps">Steps per fold</label>
+                <div class="range-value">
+                    <input type="range" id="steps" data-sync="steps" min="1" max="25" value="3" />
+                    <input type="number" id="steps-number" data-sync="steps" placeholder="e.g. 3" min="1" value="3" required />
+                </div>
+                <label for="return-noise">Show</label>
+                <select id="return-noise">
+                    <option value="false">Intermediate outputs</option>
+                    <option value="true">Noised inputs</option>
+                </select>
+            </fieldset>
+            <fieldset>
+                <legend>Predict</legend>
+                <button type="submit">Generate fold(s)</button>
+            </fieldset>
+        </form>
+        <section id="folding-overview">
+            <div id="overview-header">
+                <button id="end-folding-session">Cancel</button>
+                <h2></h2>
+            </div>
+            <section>
+                <h3>Distance map(s)</h3>
+                <div id="distance-maps-container">
+                    <p>Reference</p>
+                    <div id="distance-maps">
+                        <template id="distance-map-template">
+                            <canvas class="distance-map"></canvas>
+                        </template>
+                    </div>
+                    <p>Prediction</p>
+                </div>
+                <div id="distance-map-navigation">
+                    <button id="previous-distance-map">Previous</button>
+                    <h4 id="distance-map-counter"></h4>
+                    <button id="next-distance-map">Next</button>
+                </div>
+            </section>
+            <div class="progress-bar-bg">
+                <div id="progress-bar"></div>
+            </div>
+        </section>
+    </section>
+</body>
+</html>
