@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-frontend:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -40,7 +40,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
   build-api:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -73,7 +73,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
   build-postgres:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -106,7 +106,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
   build-redis:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
