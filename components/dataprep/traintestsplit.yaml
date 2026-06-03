@@ -1,0 +1,23 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+
+name: traintestsplit
+display_name: RNA Train/Val Split
+version: 1
+type: command
+
+inputs:
+  processed_data_path:
+    type: uri_file
+
+outputs:
+  output_dir:
+    type: uri_folder
+
+code: ./code
+
+environment: azureml:rna-env:1
+
+command: >-
+  python traintestsplit.py
+  --processed_data_path ${{inputs.processed_data_path}}
+  --output_dir ${{outputs.output_dir}}

@@ -1,0 +1,29 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+
+name: dataprep
+display_name: RNA Data Preprocessing
+version: 1
+type: command
+
+inputs:
+  train_sequences_dir:
+    type: uri_folder
+  train_labels_dir:
+    type: uri_folder
+  validation_sequences_dir:
+    type: uri_folder
+
+outputs:
+  output_dir:
+    type: uri_folder
+
+code: ./code
+
+environment: azureml:rna-env:1
+
+command: >-
+  python dataprep.py
+  --train_sequences_dir ${{inputs.train_sequences_dir}}
+  --train_labels_dir ${{inputs.train_labels_dir}}
+  --validation_sequences_dir ${{inputs.validation_sequences_dir}}
+  --output_dir ${{outputs.output_dir}}
