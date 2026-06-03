@@ -96,3 +96,18 @@ async def test_postgres_connection():
         return { 'status': 'success' }
 
     return { 'status': 'failure' }
+
+class CreateAccountRequest(p.BaseModel):
+    display_name: str
+    mail: str
+
+@app.post(
+    '/v1/accounts',
+    tags=['accounts'],
+    summary='Creates a new account',
+    description='Creates an account and sends an e-mail to verify the address and set a password',
+)
+async def create_account(request: CreateAccountRequest):
+    result = await db.create_account(settings, request.display_name, request.mail)
+
+    return result
