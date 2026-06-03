@@ -6,7 +6,7 @@
     <meta name="description" content="Predict the positions of C1' atoms of RNA sequences">
     <meta name="keywords" content="RNA, RNA folding, diffusion">
     <meta name="author" content="Pirotte Tim, Windels Maxim">
-    <title>Verify Account</title>
+    <title>Complete Your Account</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/verify.css') }}">
@@ -14,7 +14,9 @@
 </head>
 <body>
     <h1>Complete Your Account</h1>
-    <form id="account-remaining-data">
-        <input type="password" id="password">
+    <form id="complete-account">
+        <label for="password">Password</label>
+        <input type="password" id="password" minlength="8" maxlength="255">
+        <button type="submit">Complete</button>
     </form>
 </body>

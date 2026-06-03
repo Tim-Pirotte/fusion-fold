@@ -120,3 +120,15 @@ async def create_account(request: CreateAccountRequest):
         return 200
 
     return 403
+
+class CompleteAccountRequest(p.BaseModel):
+    password: str
+
+@app.patch(
+    'v1/accounts/{token}',
+    tags=['accounts'],
+    summary='Completes a created account',
+    description='Completes an account with a password and changes the account status from unverified to enabled',
+)
+async def complete_account(token: str, request: CompleteAccountRequest):
+    pass

@@ -2,8 +2,8 @@ import * as d from "./distance_map.js";
 import * as m from "./model.js";
 import * as c from "./clamp.js";
 import * as a from "./align.js";
+import { API } from "../config.js";
 
-const API = "http://localhost:5000";
 const MIN_SEQUENCE_LENGTH = 2;
 
 function init(objectManager) {
@@ -14,7 +14,7 @@ function init(objectManager) {
     document.getElementById("restore").addEventListener("click", restoreDefaultValues);
     document.getElementById("folding-form").addEventListener("submit", (e) => generateFolds(e, objectManager));
     document.getElementById("end-folding-session").addEventListener("click", hideOverview);
-    
+
     d.init();
 }
 
@@ -145,9 +145,9 @@ async function generateFolds(e, objectManager) {
             }
 
             lastStrand = m.createStrand(
-                objectManager, 
-                sequence, 
-                fold, 
+                objectManager,
+                sequence,
+                fold,
                 `${document.getElementById("name").value} #${fold + 1}`,
             );
 
@@ -155,8 +155,8 @@ async function generateFolds(e, objectManager) {
         }
 
         d.updateDistanceMap(
-            lastDistanceMap, 
-            coords, 
+            lastDistanceMap,
+            coords,
             sequence.length,
         );
 
@@ -172,7 +172,7 @@ async function generateFolds(e, objectManager) {
     eventSource.addEventListener("error", function(e) {
         if (isNavigating) {
             console.info("Stream closed due to page navigation");
-            
+
             return;
         }
 
@@ -222,7 +222,7 @@ function hideOverview() {
 
 async function getFoldingSession(sequence, folds, steps, returnNoise) {
     const res = await fetch(
-        `${API}/v1/folding-sessions/`, 
+        `${API}/v1/folding-sessions/`,
         {
             method: "POST",
             headers: {
@@ -254,7 +254,7 @@ function updateProgressBar(fold, step, totalFolds, totalSteps) {
     const completed = (fold * totalSteps) + (step + 1);
     const total = totalFolds * totalSteps;
     const progress = (completed / total) * 100;
-    
+
     $progressBar.style.width = `${progress}%`;
 
     if (completed >= total) {
