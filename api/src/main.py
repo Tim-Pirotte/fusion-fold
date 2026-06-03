@@ -11,6 +11,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import db
 import auth as a
 import mail as m
+import models as mo
 import folding as f
 import settings as s
 
@@ -19,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 
 app = fa.FastAPI(title='RNA Folding API')
 
-origins = ['http://localhost:8000']
+origins = ['http://localhost:8000', 'http://127.0.0.1:8000']
 
 app.add_middleware(
     CORSMiddleware,
@@ -153,6 +154,11 @@ async def complete_account(token: str, request: CompleteAccountRequest, response
     if not await db.complete_account(settings, account_id, hashed_password):
         return fa.Response(status_code=fa.status.HTTP_422_UNPROCESSABLE_ENTITY)
 
+    set_auth_cookie(response, account_id)
+
+    return fa.Response(status_code=fa.status.HTTP_200_OK)
+
+def set_auth_cookie(response: fa.Response, account_id: int):
     response.set_cookie(
         key='auth_token',
         value=a.get_auth_token(account_id),
@@ -161,25 +167,36 @@ async def complete_account(token: str, request: CompleteAccountRequest, response
         samesite='lax'
     )
 
-    return fa.Response(status_code=fa.status.HTTP_200_OK)
+async def get_current_account(auth_token: str = fa.Cookie(default='')) -> mo.Account:
+    data = a.get_auth_token_data(auth_token)
+
+    if data is None:
+        raise fa.HTTPException(status_code=fa.status.HTTP_401_UNAUTHORIZED)
+
+    account_id: str | None = data.get('account_id')
+
+    if account_id is None:
+        raise fa.HTTPException(status_code=fa.status.HTTP_401_UNAUTHORIZED)
+
+    account = await db.get_account(settings, int(account_id))
+
+    if account is None:
+        raise fa.HTTPException(status_code=fa.status.HTTP_404_NOT_FOUND)
+
+    return account
 
 class GetAccountResponse(p.BaseModel):
     display_name: str
     mail: str
 
 @app.get(
-    '/v1/accounts/{account_id:int}',
+    '/v1/accounts/',
     response_model=GetAccountResponse,
     tags=['accounts'],
     summary='Retrieves account data of the current session',
     description='Retrieves the account data of the currently logged in user',
 )
-async def get_account(account_id):
-    account = await db.get_account(settings, account_id)
-
-    if account is None:
-        return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
-
+async def get_account(account: mo.Account = fa.Depends(get_current_account)):
     return {
         "display_name": account.display_name,
         "mail": account.mail,
