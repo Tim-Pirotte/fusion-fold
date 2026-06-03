@@ -161,3 +161,7 @@ async def complete_account(settings: s.Settings, account_id: int, hash: bytes) -
         account.status = m.AccountStatus.enabled
 
         return True
+
+async def get_account(settings: s.Settings, account_id: int) -> m.Account:
+    async with get_postgres_connection(settings, 'app_default') as connection:
+        return await connection.get(m.Account, account_id)
