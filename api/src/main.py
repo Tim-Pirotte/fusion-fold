@@ -6,8 +6,10 @@ import asyncio
 import pydantic as p
 import fastapi as fa
 from fastapi.middleware.cors import CORSMiddleware
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 import db
+import mail as m
 import folding as f
 import settings as s
 
@@ -27,6 +29,7 @@ app.add_middleware(
 )
 
 settings = s.Settings()
+serializer = URLSafeTimedSerializer('TODO Change')
 
 @app.exception_handler(db.DataBaseError)
 async def database_error_handler(*_):
@@ -108,6 +111,12 @@ class CreateAccountRequest(p.BaseModel):
     description='Creates an account and sends an e-mail to verify the address and set a password',
 )
 async def create_account(request: CreateAccountRequest):
-    result = await db.create_account(settings, request.display_name, request.mail)
+    result, account_id = await db.create_account(settings, request.display_name, request.mail)
 
-    return result
+    if result in (db.CreateAccountResult.OK, db.CreateAccountResult.RESENT_VERIFICATION):
+        token = serializer.dumps({'account_id': account_id, 'action': 'verify_and_set_password'})
+        m.send_mock_verification_mail(request.mail, token)
+
+        return 200
+
+    return 403
