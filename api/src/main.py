@@ -124,6 +124,11 @@ class CompleteAccountRequest(p.BaseModel):
     tags=['accounts'],
     summary='Completes a created account',
     description='Completes an account with a password and changes the account status from unverified to enabled',
+    responses={
+        400: { 'description': 'Invalid token or password does not meet requirements' },
+        410: { 'description': 'Token expired' },
+        422: { 'description': 'Account does not exist or status is not \'unverified\'' },
+    },
 )
 async def complete_account(token: str, request: CompleteAccountRequest):
     try:
