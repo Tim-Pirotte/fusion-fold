@@ -183,6 +183,13 @@ async def delete_account(settings: s.Settings, account_id: int) -> bool:
 
         return result.rowcount == 1
 
-async def change_account_display_name(settings: s.Settings, account_id: int) -> bool:
+async def change_account_display_name(settings: s.Settings, account_id: int, display_name) -> bool:
     async with get_postgres_connection(settings, 'app_default') as connection:
+        result = await connection.execute(
+            al.update(m.Account)
+                .where(m.Account.id == account_id)
+                .where(m.Account.status == m.AccountStatus.enabled)
+                .values(display_name=display_name),
+        )
 
+        return result.rowcount == 1
