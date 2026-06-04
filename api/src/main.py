@@ -34,6 +34,29 @@ app.add_middleware(
 settings = s.Settings()
 serializer = URLSafeTimedSerializer(Path(f'/run/secrets/serializer_secret').read_text().strip())
 
+async def get_current_account(auth_token: str = fa.Cookie(default='')) -> int:
+    data = a.get_auth_token_data(settings, auth_token)
+
+    if data is None:
+        raise fa.HTTPException(status_code=fa.status.HTTP_401_UNAUTHORIZED)
+
+    account_id: str | None = data.get('account_id')
+
+    if account_id is None:
+        raise fa.HTTPException(status_code=fa.status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        return int(account_id)
+    except ValueError:
+        raise fa.HTTPException(status_code=fa.status.HTTP_401_UNAUTHORIZED)
+
+protected = fa.APIRouter(
+    dependencies=[fa.Depends(get_current_account)],
+    responses={
+        401: { 'description': 'Missing or invalid auth cookie' },
+    },
+)
+
 @app.exception_handler(db.DataBaseError)
 async def database_error_handler(*_):
     logger.error("Database operation failed", exc_info=True)
@@ -105,6 +128,9 @@ class CreateAccountRequest(p.BaseModel):
     tags=['accounts'],
     summary='Creates a new account',
     description='Creates an account and sends an e-mail to verify the address and set a password',
+    responses={
+        403: { 'description': 'An account is already registered for this e-mail' },
+    },
 )
 async def create_account(request: CreateAccountRequest):
     account_id = await db.create_account(settings, request.display_name, request.mail)
@@ -169,24 +195,6 @@ def set_auth_cookie(response: fa.Response, account_id: int):
         samesite='lax'
     )
 
-async def get_current_account(auth_token: str = fa.Cookie(default='')) -> mo.Account:
-    data = a.get_auth_token_data(settings, auth_token)
-
-    if data is None:
-        raise fa.HTTPException(status_code=fa.status.HTTP_401_UNAUTHORIZED)
-
-    account_id: str | None = data.get('account_id')
-
-    if account_id is None:
-        raise fa.HTTPException(status_code=fa.status.HTTP_401_UNAUTHORIZED)
-
-    account = await db.get_account(settings, int(account_id))
-
-    if account is None:
-        raise fa.HTTPException(status_code=fa.status.HTTP_404_NOT_FOUND)
-
-    return account
-
 class LoginRequest(p.BaseModel):
     mail: str
     password: str
@@ -233,15 +241,40 @@ class GetAccountResponse(p.BaseModel):
     display_name: str
     mail: str
 
-@app.get(
+@protected.get(
     '/v1/accounts/',
     response_model=GetAccountResponse,
     tags=['accounts'],
     summary='Retrieves account data of the current session',
     description='Retrieves the account data of the currently logged in user',
+    responses={
+        404: {'description': 'Account does not exist'},
+    },
 )
-async def get_account(account: mo.Account = fa.Depends(get_current_account)):
+async def get_account(account_id: int = fa.Depends(get_current_account)):
+    account = await db.get_account(settings, account_id)
+
+    if account is None:
+        raise fa.HTTPException(status_code=fa.status.HTTP_404_NOT_FOUND)
+
     return {
-        "display_name": account.display_name,
-        "mail": account.mail,
+        'display_name': account.display_name,
+        'mail': account.mail,
     }
+
+@protected.delete(
+    '/v1/accounts/',
+    tags=['accounts'],
+    summary='Deletes the account of the current session',
+    description='Deletes the account data of the currently logged in user and logs the user out',
+    responses={
+        404: {'description': 'Account does not exist'},
+    },
+)
+async def delete_account(account: mo.Account = fa.Depends(get_current_account)):
+    if not await db.delete_account(settings, account.id):
+        return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
+
+    return await logout()
+
+app.include_router(protected)
