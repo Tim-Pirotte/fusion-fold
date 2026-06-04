@@ -129,7 +129,7 @@ class CreateAccountRequest(p.BaseModel):
     summary='Creates a new account',
     description='Creates an account and sends an e-mail to verify the address and set a password',
     responses={
-        403: { 'description': 'An account is already registered for this e-mail' },
+        403: {'description': 'An account is already registered for this e-mail'},
     },
 )
 async def create_account(request: CreateAccountRequest):
@@ -152,9 +152,9 @@ class CompleteAccountRequest(p.BaseModel):
     summary='Completes a created account',
     description='Completes an account with a password and changes the account status from unverified to enabled',
     responses={
-        400: { 'description': 'Invalid token or password does not meet requirements' },
-        410: { 'description': 'Token expired' },
-        422: { 'description': 'Account does not exist or status is not \'unverified\'' },
+        400: {'description': 'Invalid token or password does not meet requirements'},
+        410: {'description': 'Token expired'},
+        422: {'description': 'Account does not exist or status is not \'unverified\''},
     },
 )
 async def complete_account(token: str, request: CompleteAccountRequest):
@@ -248,14 +248,14 @@ class GetAccountResponse(p.BaseModel):
     summary='Retrieves account data of the current session',
     description='Retrieves the account data of the currently logged in user',
     responses={
-        404: {'description': 'Account does not exist'},
+        404: {'description': 'Account does not exist or is not enabled'},
     },
 )
 async def get_account(account_id: int = fa.Depends(get_current_account)):
     account = await db.get_account(settings, account_id)
 
-    if account is None:
-        raise fa.HTTPException(status_code=fa.status.HTTP_404_NOT_FOUND)
+    if account is None or account.status != mo.AccountStatus.enabled:
+        return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
 
     return {
         'display_name': account.display_name,
@@ -268,7 +268,7 @@ async def get_account(account_id: int = fa.Depends(get_current_account)):
     summary='Deletes the account of the current session',
     description='Deletes the account data of the currently logged in user and logs the user out',
     responses={
-        404: {'description': 'Account does not exist'},
+        404: {'description': 'Account does not exist or is not enabled'},
     },
 )
 async def delete_account(account: mo.Account = fa.Depends(get_current_account)):
@@ -276,5 +276,17 @@ async def delete_account(account: mo.Account = fa.Depends(get_current_account)):
         return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
 
     return await logout()
+
+@protected.put(
+    '/v1/accounts/display-name',
+    tags=['accounts'],
+    summary='Change the account display name of the current session',
+    description='Changes the account display name of the currently logged in user',
+    responses={
+        404: {'description': 'Account does not exist or is not enabled'},
+    },
+)
+async def change_display_name():
+
 
 app.include_router(protected)
