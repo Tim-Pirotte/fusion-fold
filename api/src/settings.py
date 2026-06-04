@@ -1,9 +1,24 @@
+import secrets
+import hashlib
+
 import pydantic as p
 import pydantic_settings as ps
 
 class Settings(ps.BaseSettings):
     min_password_len: int = p.Field(ge=1)
     max_password_len: int
+
+    serializer_validity_seconds: int = p.Field(ge=1)
+
+    scrypt_salt_bytes: int = p.Field(ge=1)
+    scrypt_n_pow_2: int = p.Field(ge=1)
+    scrypt_r: int = p.Field(ge=1)
+    scrypt_p: int = p.Field(ge=1)
+    scrypt_max_mem_mb: int
+    scrypt_dklen: int = p.Field(ge=1)
+
+    jwt_algorithm: str
+    jwt_validity_days: int = p.Field(ge=1)
 
     redis_host: str
     redis_port: int = p.Field(ge=0, le=65_535)
@@ -36,6 +51,31 @@ class Settings(ps.BaseSettings):
 
             if max_v < min_v:
                 raise ValueError(f'{field} has a higher max than min')
+
+        return self
+
+    @p.model_validator(mode='after')
+    def validate_max_mem_mb(self) -> 'Settings':
+        min_memory = 128 * 2**self.scrypt_n_pow_2 * self.scrypt_r * self.scrypt_p
+        min_memory_mb = min_memory / (1024**2)
+
+        if self.scrypt_max_mem_mb < min_memory_mb:
+            raise ValueError(f'scrypt_max_mem_mb should be at least {min_memory_mb} (128 * n * r * p)')
+
+        salt = secrets.token_bytes(self.scrypt_salt_bytes)
+
+        try:
+            hashlib.scrypt(
+                ('a' * self.max_password_len).encode(),
+                salt=salt,
+                n=2**self.scrypt_n_pow_2,
+                r=self.scrypt_r,
+                p=self.scrypt_p,
+                maxmem=self.scrypt_max_mem_mb * 1024 * 1024,
+                dklen=self.scrypt_dklen,
+            )
+        except ValueError as e:
+            raise ValueError(f'scrypt_max_mem_mb is too low for the given parameters') from e
 
         return self
 

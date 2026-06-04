@@ -131,9 +131,9 @@ class CompleteAccountRequest(p.BaseModel):
         422: { 'description': 'Account does not exist or status is not \'unverified\'' },
     },
 )
-async def complete_account(token: str, request: CompleteAccountRequest, response: fa.Response):
+async def complete_account(token: str, request: CompleteAccountRequest):
     try:
-        data = serializer.loads(token, max_age=86400)
+        data = serializer.loads(token, max_age=settings.serializer_validity_seconds)
     except SignatureExpired:
         return fa.Response(status_code=fa.status.HTTP_410_GONE)
     except BadSignature:
@@ -150,7 +150,7 @@ async def complete_account(token: str, request: CompleteAccountRequest, response
     if not (settings.min_password_len <= len(request.password) <= settings.max_password_len):
         return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
-    hashed_password = a.hash_password(request.password)
+    hashed_password = a.hash_password(settings, request.password)
 
     if not await db.complete_account(settings, account_id, hashed_password):
         return fa.Response(status_code=fa.status.HTTP_422_UNPROCESSABLE_ENTITY)
@@ -163,14 +163,14 @@ async def complete_account(token: str, request: CompleteAccountRequest, response
 def set_auth_cookie(response: fa.Response, account_id: int):
     response.set_cookie(
         key='auth_token',
-        value=a.get_auth_token(account_id),
+        value=a.get_auth_token(settings, account_id),
         httponly=True,
         secure=False, # To allow HTTP
         samesite='lax'
     )
 
 async def get_current_account(auth_token: str = fa.Cookie(default='')) -> mo.Account:
-    data = a.get_auth_token_data(auth_token)
+    data = a.get_auth_token_data(settings, auth_token)
 
     if data is None:
         raise fa.HTTPException(status_code=fa.status.HTTP_401_UNAUTHORIZED)
@@ -209,7 +209,7 @@ async def login(request: LoginRequest):
     if account.status != mo.AccountStatus.enabled:
         return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
-    if not a.verify_password(request.password, account.password_hash):
+    if not a.verify_password(settings, request.password, account.password_hash):
         return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
     response = fa.Response(status_code=fa.status.HTTP_200_OK)
