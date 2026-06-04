@@ -120,8 +120,8 @@ def folding_streamer(session: SessionRequest) -> typing.Iterator[str]:
         logger.info('ending folding early due to client disconnect')
 
 class CreateAccountRequest(p.BaseModel):
-    display_name: str = p.Field(min_length=1, max_length=64)
-    mail: str = p.Field(min_length=1, max_length=64)
+    display_name: str = p.Field(min_length=settings.min_display_name_len, max_length=settings.max_display_name_len)
+    mail: str = p.Field(min_length=settings.min_mail_len, max_length=settings.max_mail_len)
 
 @app.post(
     '/v1/accounts',
@@ -193,7 +193,7 @@ def set_auth_cookie(response: fa.Response, account_id: int):
     )
 
 class LoginRequest(p.BaseModel):
-    mail: str = p.Field(min_length=1, max_length=64)
+    mail: str = p.Field(min_length=settings.min_mail_len, max_length=settings.max_mail_len)
     password: str = p.Field(min_length=settings.min_password_len, max_length=settings.max_password_len)
 
 @app.post(
@@ -275,7 +275,7 @@ async def delete_account(account_id: int = fa.Depends(get_current_account)):
     return await logout()
 
 class UpdateDisplayNameRequest(p.BaseModel):
-    display_name: str = p.Field(min_length=1, max_length=64)
+    display_name: str = p.Field(min_length=settings.min_display_name_len, max_length=settings.max_display_name_len)
 
 @protected.put(
     '/v1/accounts/display-name',
