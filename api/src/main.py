@@ -186,6 +186,18 @@ async def get_current_account(auth_token: str = fa.Cookie(default='')) -> mo.Acc
 
     return account
 
+@app.post(
+    '/v1/accounts/logout',
+    tags=['accounts'],
+    summary='Logs out the current account',
+    description='Clears the auth_token cookie so the user has to login again',
+)
+async def logout():
+    response = fa.Response(status_code=fa.status.HTTP_200_OK)
+    response.delete_cookie(key='auth_token', httponly=True, samesite='lax')
+
+    return response
+
 class GetAccountResponse(p.BaseModel):
     display_name: str
     mail: str
