@@ -176,7 +176,13 @@ async def get_account_by_mail(settings: s.Settings, mail: str) -> m.Account | No
 async def delete_account(settings: s.Settings, account_id: int) -> bool:
     async with get_postgres_connection(settings, 'app_default') as connection:
         result = await connection.execute(
-            al.delete(m.Account).where(m.Account.id == account_id),
+            al.delete(m.Account)
+                .where(m.Account.id == account_id)
+                .where(m.Account.status == m.AccountStatus.enabled),
         )
 
         return result.rowcount == 1
+
+async def change_account_display_name(settings: s.Settings, account_id: int) -> bool:
+    async with get_postgres_connection(settings, 'app_default') as connection:
+
