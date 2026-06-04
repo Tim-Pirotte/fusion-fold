@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - ghcr
   workflow_dispatch:
 
 jobs:
