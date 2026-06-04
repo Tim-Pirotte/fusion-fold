@@ -321,6 +321,7 @@ async def send_reset_mail(request: ResetPasswordMailRequest):
 class ResetPasswordRequest(p.BaseModel):
     password: str = p.Field(min_length=settings.min_password_len, max_length=settings.max_password_len)
 
+# In a real production app you should probably invalidate the token after use
 @app.put(
     '/v1/accounts/password/{token}',
     tags=['accounts'],
