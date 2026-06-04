@@ -33,6 +33,6 @@ def get_auth_token(account_id: int) -> str:
 
 def get_auth_token_data(token: str) -> dict[str, Any] | None:
     try:
-        return jwt.decode(token, 'secret', algorithm='HS256')
+        return jwt.decode(token, 'secret', algorithms=['HS256'])
     except jwt.PyJWTError:
         return None

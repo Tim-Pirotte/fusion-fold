@@ -154,9 +154,10 @@ async def complete_account(token: str, request: CompleteAccountRequest, response
     if not await db.complete_account(settings, account_id, hashed_password):
         return fa.Response(status_code=fa.status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    set_auth_cookie(response, account_id)
+    res = fa.Response(status_code=fa.status.HTTP_200_OK)
+    set_auth_cookie(res, account_id)
 
-    return fa.Response(status_code=fa.status.HTTP_200_OK)
+    return res
 
 def set_auth_cookie(response: fa.Response, account_id: int):
     response.set_cookie(
