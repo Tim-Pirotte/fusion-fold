@@ -5,9 +5,6 @@ import pydantic as p
 import pydantic_settings as ps
 
 class Settings(ps.BaseSettings):
-    min_password_len: int = p.Field(ge=1)
-    max_password_len: int
-
     serializer_validity_seconds: int = p.Field(ge=1)
 
     scrypt_salt_bytes: int = p.Field(ge=1)
@@ -30,6 +27,15 @@ class Settings(ps.BaseSettings):
     postgres_pool_size: int = p.Field(ge=1)
     postgres_max_overflow: int = p.Field(ge=-1)
 
+    min_password_len: int = p.Field(ge=1, le=255)
+    max_password_len: int = p.Field(le=255)
+
+    min_mail_len: int = p.Field(ge=1, le=255)
+    max_mail_len: int = p.Field(le=255)
+
+    min_display_name_len: int = p.Field(ge=1, le=255)
+    max_display_name_len: int = p.Field(le=255)
+
     session_ttl: int = p.Field(ge=0)
 
     min_seq_len: int = p.Field(ge=1)
@@ -43,7 +49,7 @@ class Settings(ps.BaseSettings):
 
     @p.model_validator(mode='after')
     def validate_ranges(self) -> 'Settings':
-        fields = ['password_len', 'seq_len', 'folds', 'steps']
+        fields = ['password_len', 'mail_len', 'display_name_len', 'display_name_len', 'seq_len', 'folds', 'steps']
 
         for field in fields:
             min_v = getattr(self, f'min_{field}')
