@@ -21,6 +21,22 @@ def hash_password(password: str) -> bytes:
 
     return salt + key
 
+def verify_password(password: str, hash: bytes) -> bool:
+    salt = hash[:32]
+    expected_key = hash[32:]
+
+    actual_key = hashlib.scrypt(
+        password.encode(),
+        salt=salt,
+        n=16384,
+        r=8,
+        p=1,
+        maxmem=32 * 1024 * 1024,
+        dklen=64
+    )
+
+    return secrets.compare_digest(actual_key, expected_key)
+
 def get_auth_token(account_id: int) -> str:
     expiration = datetime.now(timezone.utc) + timedelta(days=1)
 

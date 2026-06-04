@@ -162,6 +162,12 @@ async def complete_account(settings: s.Settings, account_id: int, hash: bytes) -
 
         return True
 
-async def get_account(settings: s.Settings, account_id: int) -> m.Account:
+async def get_account(settings: s.Settings, account_id: int) -> m.Account | None:
     async with get_postgres_connection(settings, 'app_default') as connection:
         return await connection.get(m.Account, account_id)
+
+async def get_account_by_mail(settings: s.Settings, mail: str) -> m.Account | None:
+    async with get_postgres_connection(settings, 'app_default') as connection:
+        account = await connection.execute(al.select(m.Account).where(m.Account.mail == mail))
+
+        return account.scalar_one_or_none()
