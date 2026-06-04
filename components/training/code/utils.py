@@ -13,20 +13,43 @@ import torch
 import torch.nn as nn
 
 
+<<<<<<< HEAD
+=======
+# ──────────────────────────────────────────────
+# Geometry helpers
+# ──────────────────────────────────────────────
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
 def distances_to_coords(distances: np.ndarray) -> tuple[np.ndarray, float]:
     n = distances.shape[0]
     j = np.eye(n) - np.ones((n, n)) / n
     b = -0.5 * j @ (distances ** 2) @ j
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     eigvals, eigvecs = np.linalg.eigh(b)
     idx = np.argsort(eigvals)[::-1]
     eigvals = eigvals[idx]
     eigvecs = eigvecs[:, idx]
+<<<<<<< HEAD
     v = eigvecs[:, :3]
     l = np.diag(np.sqrt(np.maximum(eigvals[:3], 0)))
     coords = v @ l
     neg_mass: float = np.sum(np.abs(eigvals[eigvals < 0]))
     pos_mass: float = np.sum(eigvals[eigvals > 0])
     invalidity_score = neg_mass / (pos_mass + 1e-12)
+=======
+
+    v = eigvecs[:, :3]
+    l = np.diag(np.sqrt(np.maximum(eigvals[:3], 0)))
+    coords = v @ l
+
+    neg_mass: float = np.sum(np.abs(eigvals[eigvals < 0]))
+    pos_mass: float = np.sum(eigvals[eigvals > 0])
+    invalidity_score = neg_mass / (pos_mass + 1e-12)
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     return coords, invalidity_score
 
 
@@ -35,19 +58,42 @@ def align_points(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     centroid_b = b.mean(axis=0)
     aa = a - centroid_a
     bb = b - centroid_b
+<<<<<<< HEAD
     h = aa.T @ bb
     u, _, vt = np.linalg.svd(h)
     r = vt.T @ u.T
     if np.linalg.det(r) < 0:
         vt[-1, :] *= -1
         r = vt.T @ u.T
+=======
+
+    h = aa.T @ bb
+    u, _, vt = np.linalg.svd(h)
+    r = vt.T @ u.T
+
+    if np.linalg.det(r) < 0:
+        vt[-1, :] *= -1
+        r = vt.T @ u.T
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     return (bb @ r) + centroid_a
 
 
 def d0_scaling(l):
     if l >= 30:
         return 0.6 * np.sqrt(l - 0.5) - 2.5
+<<<<<<< HEAD
     bins = [(12, 0.3), (16, 0.4), (20, 0.5), (24, 0.6), (30, 0.7)]
+=======
+
+    bins = [
+        (12, 0.3),
+        (16, 0.4),
+        (20, 0.5),
+        (24, 0.6),
+        (30, 0.7),
+    ]
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     for threshold, val in bins:
         if l < threshold:
             return val
@@ -61,17 +107,32 @@ def tm_score(a: np.ndarray, b: np.ndarray) -> float:
     return np.sum(1 / (1 + (dists / d0) ** 2)) / l_ref
 
 
+<<<<<<< HEAD
+=======
+# ──────────────────────────────────────────────
+# Run / checkpoint helpers
+# ──────────────────────────────────────────────
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
 def create_run_dir(experiment_name: str, base_dir: str = "outputs") -> str:
     run_dir = os.path.join(
         base_dir,
         f"{experiment_name}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}",
     )
     os.makedirs(run_dir, exist_ok=True)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     with open(os.path.join(run_dir, "summary.csv"), "w") as f:
         f.write(
             "Epoch,Learning rate,Average training loss,Average validation loss,"
             "Estimated average validation TM-score,Average validation validity score\n"
         )
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     return run_dir
 
 
@@ -87,6 +148,13 @@ def save_checkpoint(model, optimizer, scheduler, epoch: int, filepath: str):
     )
 
 
+<<<<<<< HEAD
+=======
+# ──────────────────────────────────────────────
+# Metrics / logging
+# ──────────────────────────────────────────────
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
 def display_save_metrics(run_dir: str, epoch: int, metrics: dict):
     lr = metrics["training"][-1]["learning_rate"]
     train_loss = metrics["training"][-1]["loss_sum"] / metrics["training"][-1]["sample_count"]
@@ -104,12 +172,20 @@ def display_save_metrics(run_dir: str, epoch: int, metrics: dict):
         f"   - Est. avg val TM-score: {val_tm:.4f}\n"
         f"   - Avg val invalidity score: {val_inv}\n"
     )
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     plot_validation_samples(run_dir, metrics["validation"][-1]["samples"], epoch)
 
 
 def save_loss_curve(run_dir: str, metrics: dict):
     train_losses = [m["loss_sum"] / m["sample_count"] for m in metrics["training"]]
     val_losses = [m["loss_sum"] / m["sample_count"] for m in metrics["validation"]]
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     _, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     ax.plot(range(1, len(train_losses) + 1), train_losses, label="Training loss")
@@ -122,13 +198,28 @@ def save_loss_curve(run_dir: str, metrics: dict):
     plt.savefig(os.path.join(run_dir, "loss_curve.png"))
 
 
+<<<<<<< HEAD
 def plot_points(points: pd.DataFrame, ax, title: str = "", tm_score_val: float = 0, limit: bool = False):
     unique_ids = points["id"].unique()
     base_maps = ["Reds", "Blues", "Greens", "Oranges", "Purples", "Greys"]
+=======
+# ──────────────────────────────────────────────
+# Plotting
+# ──────────────────────────────────────────────
+
+def plot_points(points: pd.DataFrame, ax, title: str = "", tm_score_val: float = 0, limit: bool = False):
+    unique_ids = points["id"].unique()
+    base_maps = ["Reds", "Blues", "Greens", "Oranges", "Purples", "Greys"]
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     ax.set_title(title)
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z", labelpad=-1)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     legend_handles = []
     for i, pid in enumerate(unique_ids):
         subset = points[points["id"] == pid]
@@ -138,11 +229,21 @@ def plot_points(points: pd.DataFrame, ax, title: str = "", tm_score_val: float =
         handle = Line2D([0], [0], marker="o", color="w",
                         markerfacecolor=cmap(0.6), markersize=8, label=pid)
         legend_handles.append(handle)
+<<<<<<< HEAD
     ax.legend(handles=legend_handles, loc="lower left", fontsize=8)
+=======
+
+    ax.legend(handles=legend_handles, loc="lower left", fontsize=8)
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     if limit:
         ax.set_xlim(-15, 15)
         ax.set_ylim(-15, 15)
         ax.set_zlim(-15, 15)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     ax.text2D(0.05, 0.95, f"TM-score: {tm_score_val:.4f}", transform=ax.transAxes,
               fontsize=9, verticalalignment="top",
               bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
@@ -150,6 +251,7 @@ def plot_points(points: pd.DataFrame, ax, title: str = "", tm_score_val: float =
 
 def plot_validation_samples(run_dir: str, plot_samples: list, epoch: int):
     fig = plt.figure(figsize=(18, 4))
+<<<<<<< HEAD
     for col, (coords_pred, coords_y, sample_tm) in enumerate(plot_samples):
         ax = fig.add_subplot(1, 3, col + 1, projection="3d")
         df_pred = pd.DataFrame(coords_pred, columns=["x", "y", "z"])
@@ -158,10 +260,32 @@ def plot_validation_samples(run_dir: str, plot_samples: list, epoch: int):
         df_y["id"] = "Actual"
         combined = pd.concat([df_pred, df_y], ignore_index=True)
         plot_points(combined, ax=ax, title=f"Sample {col + 1}", tm_score_val=sample_tm, limit=True)
+=======
+
+    for col, (coords_pred, coords_y, sample_tm) in enumerate(plot_samples):
+        ax = fig.add_subplot(1, 3, col + 1, projection="3d")
+
+        df_pred = pd.DataFrame(coords_pred, columns=["x", "y", "z"])
+        df_pred["id"] = "Prediction"
+
+        df_y = pd.DataFrame(coords_y, columns=["x", "y", "z"])
+        df_y["id"] = "Actual"
+
+        combined = pd.concat([df_pred, df_y], ignore_index=True)
+        plot_points(combined, ax=ax, title=f"Sample {col + 1}", tm_score_val=sample_tm, limit=True)
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     plt.tight_layout()
     plt.savefig(os.path.join(run_dir, f"epoch_{epoch}_val_plots.png"))
 
 
+<<<<<<< HEAD
+=======
+# ──────────────────────────────────────────────
+# Early stopping
+# ──────────────────────────────────────────────
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
 class EarlyStopping:
     def __init__(self, patience: int = 5, delta: float = 0, max_run_time: int = 60 * 60 * 24):
         self.end_time = time.time() + max_run_time
@@ -175,6 +299,10 @@ class EarlyStopping:
 
     def __call__(self, val_loss: float, model):
         score = -val_loss
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
         if self.best_score is not None and score < self.best_score + self.delta:
             self.counter += 1
             if self.counter >= self.patience:
@@ -184,6 +312,10 @@ class EarlyStopping:
             self.best_score = score
             self.best_model_state = model.state_dict()
             self.counter = 0
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
         if time.time() > self.end_time:
             self.early_stop = True
             self.reason = "Time limit reached"
