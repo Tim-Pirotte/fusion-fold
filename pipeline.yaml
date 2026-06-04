@@ -1,0 +1,61 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+name: rna-training-pipeline
+display_name: RNA Folding Pipeline
+experiment_name: rna-folding
+
+inputs:
+  epochs: 1
+
+outputs:
+  model:
+    mode: upload
+
+settings:
+  default_compute: azureml:rna-cluster-large
+
+jobs:
+  dataprep:
+    type: command
+    component: ./components/dataprep/dataprep.yaml
+    inputs:
+      train_sequences_dir:
+        type: uri_folder
+        path: azureml:train_sequences_v2:1
+      train_labels_dir:
+        type: uri_folder
+        path: azureml:train_labels_v2:1
+      validation_sequences_dir:
+        type: uri_folder
+        path: azureml:validation_sequences:1
+    outputs:
+      output_dir:
+        mode: rw_mount
+
+  traintestsplit:
+    type: command
+    component: ./components/dataprep/traintestsplit.yaml
+    inputs:
+      processed_data_path: ${{parent.jobs.dataprep.outputs.output_dir}}
+    outputs:
+      output_dir:
+        mode: rw_mount
+
+  training:
+    type: command
+    component: ./components/training/training.yaml
+    inputs:
+      train_path: ${{parent.jobs.traintestsplit.outputs.output_dir}}
+      val_path: ${{parent.jobs.traintestsplit.outputs.output_dir}}
+      experiment_name: rna_experiment
+      epochs: ${{parent.inputs.epochs}}
+    outputs:
+      output_dir: ${{parent.outputs.model}}
+
+  register:
+    type: command
+    component: azureml://registries/azureml/components/register_model/versions/0.0.21
+    inputs:
+      model_name: rna-model
+      model_type: custom_model
+      model_path: ${{parent.jobs.training.outputs.output_dir}}
