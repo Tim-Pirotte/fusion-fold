@@ -128,6 +128,7 @@ class CreateAccountRequest(p.BaseModel):
     tags=['accounts'],
     summary='Creates a new account',
     description='Creates an account and sends an e-mail to verify the address and set a password',
+    status_code=fa.status.HTTP_202_ACCEPTED,
     responses={
         403: {'description': 'An account is already registered for this e-mail'},
     },
@@ -135,13 +136,13 @@ class CreateAccountRequest(p.BaseModel):
 async def create_account(request: CreateAccountRequest):
     account_id = await db.create_account(settings, request.display_name, request.mail)
 
-    if account_id:
-        token = serializer.dumps({'account_id': account_id, 'action': 'verify_and_set_password'})
-        m.send_mock_verification_mail(request.mail, token)
+    if account_id is None:
+        return fa.Response(status_code=fa.status.HTTP_403_FORBIDDEN)
 
-        return 200
+    token = serializer.dumps({'account_id': account_id, 'action': 'verify_and_set_password'})
+    m.send_mock_verification_mail(request.mail, token)
 
-    return 403
+    return fa.Response(status_code=fa.status.HTTP_202_ACCEPTED)
 
 class CompleteAccountRequest(p.BaseModel):
     password: str = p.Field(min_length=settings.min_password_len, max_length=settings.max_password_len)
@@ -151,10 +152,11 @@ class CompleteAccountRequest(p.BaseModel):
     tags=['accounts'],
     summary='Completes a created account',
     description='Completes an account with a password and changes the account status from unverified to enabled',
+    status_code=fa.status.HTTP_204_NO_CONTENT,
     responses={
         400: {'description': 'Invalid token'},
         410: {'description': 'Token expired'},
-        422: {'description': 'Account does not exist or status is not \'unverified\''},
+        422: {'description': 'Account does not exist or is not unverified'},
     },
 )
 async def complete_account(token: str, request: CompleteAccountRequest):
@@ -178,7 +180,7 @@ async def complete_account(token: str, request: CompleteAccountRequest):
     if not await db.complete_account(settings, account_id, hashed_password):
         return fa.Response(status_code=fa.status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    res = fa.Response(status_code=fa.status.HTTP_200_OK)
+    res = fa.Response(status_code=fa.status.HTTP_204_NO_CONTENT)
     set_auth_cookie(res, account_id)
 
     return res
@@ -201,6 +203,7 @@ class LoginRequest(p.BaseModel):
     tags=['accounts'],
     summary='Logs in to an account',
     description='Validates credentials and sets an auth cookie on success',
+    status_code=fa.status.HTTP_204_NO_CONTENT,
     responses={
         400: { 'description': 'Invalid password, e-mail or acccount is disabled' },
     },
@@ -217,7 +220,7 @@ async def login(request: LoginRequest):
     if not a.verify_password(settings, request.password, account.password_hash):
         return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
-    response = fa.Response(status_code=fa.status.HTTP_200_OK)
+    response = fa.Response(status_code=fa.status.HTTP_204_NO_CONTENT)
     set_auth_cookie(response, account.id)
 
     return response
@@ -227,9 +230,10 @@ async def login(request: LoginRequest):
     tags=['accounts'],
     summary='Logs out the current account',
     description='Clears the auth_token cookie so the user has to login again',
+    status_code=fa.status.HTTP_204_NO_CONTENT,
 )
 async def logout():
-    response = fa.Response(status_code=fa.status.HTTP_200_OK)
+    response = fa.Response(status_code=fa.status.HTTP_204_NO_CONTENT)
     response.delete_cookie(key='auth_token', httponly=True, samesite='lax')
 
     return response
@@ -282,6 +286,7 @@ class UpdateDisplayNameRequest(p.BaseModel):
     tags=['accounts'],
     summary='Change the account display name of the current session',
     description='Changes the account display name of the currently logged in user',
+    status_code=fa.status.HTTP_204_NO_CONTENT,
     responses={
         404: {'description': 'Account does not exist or is not enabled'},
     },
@@ -290,6 +295,68 @@ async def change_display_name(request: UpdateDisplayNameRequest, account_id: int
     if not await db.change_account_display_name(settings, account_id, request.display_name):
         return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
 
-    return fa.Response(status_code=fa.status.HTTP_200_OK)
+    return fa.Response(status_code=fa.status.HTTP_204_NO_CONTENT)
+
+class ResetPasswordMailRequest(p.BaseModel):
+    mail: str = p.Field(min_length=settings.min_mail_len, max_length=settings.max_mail_len)
+
+@app.post(
+    '/v1/accounts/password-reset',
+    tags=['accounts'],
+    summary='Sends a password reset e-mail',
+    description='Sends a password reset e-mail if the e-mail is linked to a user',
+    status_code=fa.status.HTTP_202_ACCEPTED,
+)
+async def send_reset_mail(request: ResetPasswordMailRequest):
+    account = await db.get_account_by_mail(settings, request.mail)
+
+    if account is None:
+        return fa.Response(status_code=fa.status.HTTP_202_ACCEPTED)
+
+    token = serializer.dumps({'account_id': account.id, 'action': 'reset_password'})
+    m.send_mock_reset_password_mail(request.mail, token)
+
+    return fa.Response(status_code=fa.status.HTTP_202_ACCEPTED)
+
+class ResetPasswordRequest(p.BaseModel):
+    password: str = p.Field(min_length=settings.min_password_len, max_length=settings.max_password_len)
+
+@app.put(
+    '/v1/accounts/password/{token}',
+    tags=['accounts'],
+    summary='Resets the password',
+    description='Resets the password of the account linked to the e-mail the verification was send to and logs the user in',
+    status_code=fa.status.HTTP_204_NO_CONTENT,
+    responses={
+        400: {'description': 'Invalid token'},
+        410: {'description': 'Token expired'},
+        422: {'description': 'Account does not exist or is not enabled'},
+    },
+)
+async def reset_password(token: str, request: ResetPasswordRequest):
+    try:
+        data = serializer.loads(token, max_age=settings.serializer_validity_seconds)
+    except SignatureExpired:
+        return fa.Response(status_code=fa.status.HTTP_410_GONE)
+    except BadSignature:
+        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
+
+    if data.get('action') != 'reset_password':
+        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
+
+    account_id = data.get('account_id')
+
+    if account_id is None:
+        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
+
+    hashed_password = a.hash_password(settings, request.password)
+
+    if not await db.reset_password(settings, account_id, hashed_password):
+        return fa.Response(status_code=fa.status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    res = fa.Response(status_code=fa.status.HTTP_204_NO_CONTENT)
+    set_auth_cookie(res, account_id)
+
+    return res
 
 app.include_router(protected)
