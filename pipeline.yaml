@@ -1,6 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
 type: pipeline
-name: rna-training-pipeline
 display_name: RNA Folding Pipeline
 experiment_name: rna-folding
 
@@ -55,6 +54,8 @@ jobs:
   register:
     type: command
     component: azureml://registries/azureml/components/register_model/versions/0.0.21
+    identity:
+      type: user_identity
     inputs:
       model_name: rna-model
       model_type: custom_model
