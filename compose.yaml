@@ -10,6 +10,7 @@ services:
       - 5000:5000
     secrets:
       - serializer_secret
+      - jwt_secret
       - redis_write
       - redis_read_delete
       - postgres_app_default
@@ -48,6 +49,9 @@ volumes:
 secrets:
   serializer_secret:
     file: ./api/serializer.secret
+
+  jwt_secret:
+    file: ./api/jwt.secret
 
   redis_acl:
     file: ./redis/users.acl
