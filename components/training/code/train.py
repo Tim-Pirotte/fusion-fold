@@ -9,11 +9,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.checkpoint import checkpoint
 from torch.utils.data import DataLoader
-<<<<<<< HEAD
 from scipy.spatial.distance import cdist
 from scipy.spatial import distance_matrix
-=======
->>>>>>> 2e15c95 (Add Azure ML pipeline)
+
 
 from utils import (
     EarlyStopping,
@@ -25,7 +23,6 @@ from utils import (
     save_loss_curve,
     tm_score,
 )
-<<<<<<< HEAD
 
 torch.manual_seed(42)
 np.random.seed(42)
@@ -38,33 +35,15 @@ def encode_sequence(str_seq):
 
 
 def get_distance_std_dev(sequence):
-=======
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
-# ──────────────────────────────────────────────
-# Dataset (inlined from dataprep)
-# ──────────────────────────────────────────────
-
-MAPPING = {"A": 0, "G": 1, "C": 2, "U": 3}
-
-def encode_sequence(str_seq):
-    return str_seq.map(MAPPING).to_numpy(dtype=np.uint8)
-
-def get_distance_std_dev(sequence):
-    from scipy.spatial.distance import cdist
->>>>>>> 2e15c95 (Add Azure ML pipeline)
     coords = sequence[["x", "y", "z"]].values
     dist_map = cdist(coords, coords).astype(np.float32)
     mask = ~np.eye(len(coords), dtype=bool)
     return float(dist_map[mask].std() + 1e-6)
 
-<<<<<<< HEAD
 
 def get_coordinates(coordinates, scale, t=0):
-=======
-def get_coordinates(coordinates, scale, t=0):
-    from scipy.spatial import distance_matrix as dm
->>>>>>> 2e15c95 (Add Azure ML pipeline)
+
     coord_values = coordinates[["x", "y", "z"]].values
     coord_values = coord_values - np.mean(coord_values, axis=0)
     coord_values = (coord_values / scale).astype(np.float32)
@@ -72,22 +51,11 @@ def get_coordinates(coordinates, scale, t=0):
     coord_values = np.sqrt(1 - t) * coord_values + np.sqrt(t) * noise
     return coord_values.astype(np.float32)
 
-<<<<<<< HEAD
-
 def get_output_tensor(coordinates):
     coord_values = coordinates[["x", "y", "z"]].values
     position_distances = distance_matrix(coord_values, coord_values)
     return position_distances[np.newaxis, :, :].astype(np.float32)
 
-
-=======
-def get_output_tensor(coordinates):
-    from scipy.spatial import distance_matrix as dm
-    coord_values = coordinates[["x", "y", "z"]].values
-    position_distances = dm(coord_values, coord_values)
-    return position_distances[np.newaxis, :, :].astype(np.float32)
-
->>>>>>> 2e15c95 (Add Azure ML pipeline)
 class RNADataset(torch.utils.data.Dataset):
     def __init__(self, df, presample, min_t, max_t):
         self.samples = [group.copy() for _, group in df.groupby("target_id")]
@@ -113,19 +81,7 @@ class RNADataset(torch.utils.data.Dataset):
         S = encode_sequence(sequence["resname"])
         Y = get_output_tensor(sequence)
         return X, S, t, Y, std_dev
-<<<<<<< HEAD
 
-
-=======
-torch.manual_seed(42)
-np.random.seed(42)
-
-
-# ──────────────────────────────────────────────
-# Model
-# ──────────────────────────────────────────────
-
->>>>>>> 2e15c95 (Add Azure ML pipeline)
 class ResBlock(nn.Module):
     def __init__(self, channels: int, kernel_size: int = 3, dilation: int = 1):
         super().__init__()
@@ -213,20 +169,11 @@ class RNAConvModel(nn.Module):
         device = coords.device
 
         dist_3d = torch.cdist(coords, coords, p=2).unsqueeze(1)
-<<<<<<< HEAD
         pos = torch.arange(n, device=device).float()
         dist_seq = torch.abs(pos.unsqueeze(1) - pos.unsqueeze(0)).unsqueeze(0).expand(b, -1, -1)
         pos_enc = self.position_encoding(dist_seq).permute(0, 3, 1, 2)
         t_enc = self.time_encoding(t).view(b, -1, 1, 1).expand(-1, -1, n, n)
-=======
 
-        pos = torch.arange(n, device=device).float()
-        dist_seq = torch.abs(pos.unsqueeze(1) - pos.unsqueeze(0)).unsqueeze(0).expand(b, -1, -1)
-        pos_enc = self.position_encoding(dist_seq).permute(0, 3, 1, 2)
-
-        t_enc = self.time_encoding(t).view(b, -1, 1, 1).expand(-1, -1, n, n)
-
->>>>>>> 2e15c95 (Add Azure ML pipeline)
         pair_indices = (sequence.unsqueeze(2) * self.n_nucleotides + sequence.unsqueeze(1)).long()
         pairwise_emb = self.pair_embedding(pair_indices).permute(0, 3, 1, 2)
 
@@ -256,14 +203,6 @@ class RNAConvModel(nn.Module):
         x = torch.tril(x, diagonal=-1)
         return x + x.transpose(-1, -2)
 
-
-<<<<<<< HEAD
-=======
-# ──────────────────────────────────────────────
-# Training / validation loops
-# ──────────────────────────────────────────────
-
->>>>>>> 2e15c95 (Add Azure ML pipeline)
 def run_train_epoch(model, loader, loss_fn, optimizer, device):
     metrics = {"loss_sum": 0.0, "sample_count": 0.0}
     model.train()
@@ -273,7 +212,6 @@ def run_train_epoch(model, loader, loss_fn, optimizer, device):
             x, s, t, y, std_dev = (
                 x.to(device), s.to(device), t.to(device), y.to(device), std_dev.to(device)
             )
-<<<<<<< HEAD
             prediction = model(x, s, t)
             loss = loss_fn(prediction, y, std_dev)
             optimizer.zero_grad()
@@ -281,19 +219,7 @@ def run_train_epoch(model, loader, loss_fn, optimizer, device):
             optimizer.step()
             metrics["loss_sum"] += loss.item() * len(y)
             metrics["sample_count"] += len(y)
-=======
 
-            prediction = model(x, s, t)
-            loss = loss_fn(prediction, y, std_dev)
-
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            metrics["loss_sum"] += loss.item() * len(y)
-            metrics["sample_count"] += len(y)
-
->>>>>>> 2e15c95 (Add Azure ML pipeline)
             if i % 10 == 0:
                 print(f"Train progress: {i}/{len(loader)} ({i / len(loader) * 100:.1f}%)", end="\r")
 
@@ -315,7 +241,6 @@ def run_validation_epoch(model, loader, loss_fn, device):
             x, s, t, y, std_dev = (
                 x.to(device), s.to(device), t.to(device), y.to(device), std_dev.to(device)
             )
-<<<<<<< HEAD
             prediction = model(x, s, t)
             loss = loss_fn(prediction, y, std_dev)
             metrics["loss_sum"] += loss.item() * len(y)
@@ -327,47 +252,16 @@ def run_validation_epoch(model, loader, loss_fn, device):
             metrics["tm_score_sum"] += val_tm
             if i <= 3:
                 metrics["samples"].append((align_points(coords_y, coords_pred), coords_y, val_tm))
-=======
 
-            prediction = model(x, s, t)
-            loss = loss_fn(prediction, y, std_dev)
-
-            metrics["loss_sum"] += loss.item() * len(y)
-            metrics["sample_count"] += len(y)
-
-            coords_pred, invalidity_score = distances_to_coords(prediction[0, 0].float().cpu().numpy())
-            coords_y, _ = distances_to_coords(y[0, 0].cpu().numpy())
-
-            metrics["invalidity_score_sum"] += invalidity_score
-            val_tm = tm_score(coords_y, coords_pred)
-            metrics["tm_score_sum"] += val_tm
-
-            if i <= 3:
-                metrics["samples"].append((align_points(coords_y, coords_pred), coords_y, val_tm))
-
->>>>>>> 2e15c95 (Add Azure ML pipeline)
             if i % 10 == 0:
                 print(f"Val progress: {i}/{len(loader)} ({i / len(loader) * 100:.1f}%)", end="\r")
 
     return metrics
 
-
-<<<<<<< HEAD
 def main(args):
     device = torch.device("cpu")
 
-=======
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
 
-def main(args):
-    pass  # removed: float32 matmul precision (CPU only)
-    device = torch.device("cpu")
-    print(f"Using device: {device}")
-
-    # Load splits
->>>>>>> 2e15c95 (Add Azure ML pipeline)
     train_df = pd.read_parquet(args.train_path)
     val_df = pd.read_parquet(args.val_path)
 
@@ -383,10 +277,6 @@ def main(args):
         pin_memory=False, num_workers=2, prefetch_factor=4, persistent_workers=True,
     )
 
-<<<<<<< HEAD
-=======
-    # Model
->>>>>>> 2e15c95 (Add Azure ML pipeline)
     model = RNAConvModel(
         hidden_size=64,
         n_nucleotides=4,
@@ -403,13 +293,7 @@ def main(args):
 
     start_epoch = 1
 
-<<<<<<< HEAD
     if args.checkpoint_path and os.path.isfile(args.checkpoint_path):
-=======
-    # Optional checkpoint resume
-    if args.checkpoint_path and os.path.isfile(args.checkpoint_path):
-        print(f"Resuming from checkpoint: {args.checkpoint_path}")
->>>>>>> 2e15c95 (Add Azure ML pipeline)
         ckpt = torch.load(args.checkpoint_path, map_location=device)
         model.load_state_dict(ckpt["model_state_dict"])
         optimizer.load_state_dict(ckpt["optimizer_state_dict"])
@@ -421,7 +305,6 @@ def main(args):
 
     for epoch in range(start_epoch, args.epochs + 1):
         print(f"\n--- Epoch {epoch}/{args.epochs} ---")
-<<<<<<< HEAD
         metrics["training"].append(run_train_epoch(model, train_loader, loss_fn, optimizer, device))
         metrics["validation"].append(run_validation_epoch(model, val_loader, loss_fn, device))
         metrics["training"][-1]["learning_rate"] = optimizer.param_groups[0]["lr"]
@@ -430,50 +313,22 @@ def main(args):
         display_save_metrics(run_dir, epoch, metrics)
         val_loss = metrics["validation"][-1]["loss_sum"] / metrics["validation"][-1]["sample_count"]
         early_stopping(val_loss, model)
-=======
-
-        metrics["training"].append(run_train_epoch(model, train_loader, loss_fn, optimizer, device))
-        metrics["validation"].append(run_validation_epoch(model, val_loader, loss_fn, device))
-
-        metrics["training"][-1]["learning_rate"] = optimizer.param_groups[0]["lr"]
-        scheduler.step()
-
-        save_checkpoint(model, optimizer, scheduler, epoch, os.path.join(run_dir, "checkpoint.pt"))
-        display_save_metrics(run_dir, epoch, metrics)
-
-        val_loss = metrics["validation"][-1]["loss_sum"] / metrics["validation"][-1]["sample_count"]
-        early_stopping(val_loss, model)
-
->>>>>>> 2e15c95 (Add Azure ML pipeline)
         if early_stopping.early_stop:
             print(f"Stopping early: {early_stopping.reason}")
             break
 
     save_loss_curve(run_dir, metrics)
     torch.save(early_stopping.best_model_state, os.path.join(run_dir, "best_model.pt"))
-<<<<<<< HEAD
-=======
-    print(f"\nTraining complete. Outputs saved to {run_dir}")
->>>>>>> 2e15c95 (Add Azure ML pipeline)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-<<<<<<< HEAD
     parser.add_argument("--train_path", type=str, required=True)
     parser.add_argument("--val_path", type=str, required=True)
     parser.add_argument("--experiment_name", type=str, default="rna_experiment")
     parser.add_argument("--epochs", type=int, default=350)
     parser.add_argument("--checkpoint_path", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default="./outputs")
-=======
-    parser.add_argument("--train_path", type=str, required=True, help="Path to train.parquet")
-    parser.add_argument("--val_path", type=str, required=True, help="Path to val.parquet")
-    parser.add_argument("--experiment_name", type=str, default="rna_experiment")
-    parser.add_argument("--epochs", type=int, default=350)
-    parser.add_argument("--checkpoint_path", type=str, default=None, help="Optional path to resume from")
-    parser.add_argument("--output_dir", type=str, default="./outputs", help="Output directory for Azure ML")
->>>>>>> 2e15c95 (Add Azure ML pipeline)
     args = parser.parse_args()
 
     main(args)
