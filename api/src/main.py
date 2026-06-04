@@ -120,8 +120,8 @@ def folding_streamer(session: SessionRequest) -> typing.Iterator[str]:
         logger.info('ending folding early due to client disconnect')
 
 class CreateAccountRequest(p.BaseModel):
-    display_name: str
-    mail: str
+    display_name: str = p.Field(min_length=1, max_length=64)
+    mail: str = p.Field(min_length=1, max_length=64)
 
 @app.post(
     '/v1/accounts',
@@ -144,7 +144,7 @@ async def create_account(request: CreateAccountRequest):
     return 403
 
 class CompleteAccountRequest(p.BaseModel):
-    password: str
+    password: str = p.Field(min_length=settings.min_password_len, max_length=settings.max_password_len)
 
 @app.patch(
     '/v1/accounts/{token}',
@@ -152,7 +152,7 @@ class CompleteAccountRequest(p.BaseModel):
     summary='Completes a created account',
     description='Completes an account with a password and changes the account status from unverified to enabled',
     responses={
-        400: {'description': 'Invalid token or password does not meet requirements'},
+        400: {'description': 'Invalid token'},
         410: {'description': 'Token expired'},
         422: {'description': 'Account does not exist or status is not \'unverified\''},
     },
@@ -171,9 +171,6 @@ async def complete_account(token: str, request: CompleteAccountRequest):
     account_id = data.get('account_id')
 
     if account_id is None:
-        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
-
-    if not (settings.min_password_len <= len(request.password) <= settings.max_password_len):
         return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
     hashed_password = a.hash_password(settings, request.password)
@@ -196,8 +193,8 @@ def set_auth_cookie(response: fa.Response, account_id: int):
     )
 
 class LoginRequest(p.BaseModel):
-    mail: str
-    password: str
+    mail: str = p.Field(min_length=1, max_length=64)
+    password: str = p.Field(min_length=settings.min_password_len, max_length=settings.max_password_len)
 
 @app.post(
     '/v1/accounts/login',
@@ -271,11 +268,14 @@ async def get_account(account_id: int = fa.Depends(get_current_account)):
         404: {'description': 'Account does not exist or is not enabled'},
     },
 )
-async def delete_account(account: mo.Account = fa.Depends(get_current_account)):
-    if not await db.delete_account(settings, account.id):
+async def delete_account(account_id: int = fa.Depends(get_current_account)):
+    if not await db.delete_account(settings, account_id):
         return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
 
     return await logout()
+
+class UpdateDisplayNameRequest(p.BaseModel):
+    display_name: str = p.Field(min_length=1, max_length=64)
 
 @protected.put(
     '/v1/accounts/display-name',
@@ -286,7 +286,10 @@ async def delete_account(account: mo.Account = fa.Depends(get_current_account)):
         404: {'description': 'Account does not exist or is not enabled'},
     },
 )
-async def change_display_name():
+async def change_display_name(request: UpdateDisplayNameRequest, account_id: int = fa.Depends(get_current_account)):
+    if not await db.change_account_display_name(settings, account_id, request.display_name):
+        return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
 
+    return fa.Response(status_code=fa.status.HTTP_200_OK)
 
 app.include_router(protected)
