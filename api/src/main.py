@@ -2,6 +2,7 @@ import json
 import typing
 import logging
 import asyncio
+from pathlib import Path
 
 import pydantic as p
 import fastapi as fa
@@ -31,7 +32,7 @@ app.add_middleware(
 )
 
 settings = s.Settings()
-serializer = URLSafeTimedSerializer('TODO Change')
+serializer = URLSafeTimedSerializer(Path(f'/run/secrets/serializer_secret').read_text().strip())
 
 @app.exception_handler(db.DataBaseError)
 async def database_error_handler(*_):

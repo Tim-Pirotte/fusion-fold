@@ -1,7 +1,6 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Type
-from enum import Enum
 import functools
 import time
 import uuid
