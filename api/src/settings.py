@@ -2,6 +2,9 @@ import pydantic as p
 import pydantic_settings as ps
 
 class Settings(ps.BaseSettings):
+    min_password_len: int = p.Field(ge=1)
+    max_password_len: int
+
     redis_host: str
     redis_port: int = p.Field(ge=0, le=65_535)
     redis_db: int = p.Field(ge=0, le=15)
@@ -25,7 +28,7 @@ class Settings(ps.BaseSettings):
 
     @p.model_validator(mode='after')
     def validate_ranges(self) -> 'Settings':
-        fields = ['seq_len', 'folds', 'steps']
+        fields = ['password_len', 'seq_len', 'folds', 'steps']
 
         for field in fields:
             min_v = getattr(self, f'min_{field}')

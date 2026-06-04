@@ -147,7 +147,7 @@ async def complete_account(token: str, request: CompleteAccountRequest, response
     if account_id is None:
         return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
-    if not (8 <= len(request.password) <= 16):
+    if not (settings.min_password_len <= len(request.password) <= settings.max_password_len):
         return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
     hashed_password = a.hash_password(request.password)
