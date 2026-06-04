@@ -186,6 +186,36 @@ async def get_current_account(auth_token: str = fa.Cookie(default='')) -> mo.Acc
 
     return account
 
+class LoginRequest(p.BaseModel):
+    mail: str
+    password: str
+
+@app.post(
+    '/v1/accounts/login',
+    tags=['accounts'],
+    summary='Logs in to an account',
+    description='Validates credentials and sets an auth cookie on success',
+    responses={
+        400: { 'description': 'Invalid password, e-mail or acccount is disabled' },
+    },
+)
+async def login(request: LoginRequest):
+    account = await db.get_account_by_mail(settings, request.mail)
+
+    if account is None:
+        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
+
+    if account.status != mo.AccountStatus.enabled:
+        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
+
+    if not a.verify_password(request.password, account.password_hash):
+        return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
+
+    response = fa.Response(status_code=fa.status.HTTP_200_OK)
+    set_auth_cookie(response, account.id)
+
+    return response
+
 @app.post(
     '/v1/accounts/logout',
     tags=['accounts'],
