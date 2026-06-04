@@ -2,7 +2,11 @@ $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.jso
 
 name: dataprep
 display_name: RNA Data Preprocessing
+<<<<<<< HEAD
 version: 1.0.0
+=======
+version: 1
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
 type: command
 
 inputs:

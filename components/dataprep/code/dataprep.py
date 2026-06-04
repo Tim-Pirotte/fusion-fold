@@ -10,7 +10,10 @@ import torch
 MAPPING = {"A": 0, "G": 1, "C": 2, "U": 3}
 VALID_BASES = {"A", "U", "G", "C"}
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
 def strip_suffix(x: str) -> str:
     if "_" in x:
         return "_".join(x.split("_")[:-1])
@@ -20,18 +23,31 @@ def strip_suffix(x: str) -> str:
 def unstack_sequences(sequences: pd.DataFrame) -> pd.DataFrame:
     result = sequences.copy()
     result = result.set_index(["ID", "resname", "resid"])
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     result.columns = pd.MultiIndex.from_tuples(
         [tuple(col.split("_")) for col in result.columns],
         names=["", "idx"],
     )
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     result = result.stack("idx", future_stack=True).reset_index()
     result = result.replace(-1e18, np.nan)
     result = result.dropna(subset=["x", "y", "z"])
     result["target_id"] = result["ID"].map(strip_suffix) + "_" + result["idx"]
     result.drop(columns=["idx", "ID"], inplace=True)
     result = result.reset_index(drop=True)
+<<<<<<< HEAD
     return result[["target_id", "resname", "resid", "x", "y", "z"]]
 
+=======
+
+    return result[["target_id", "resname", "resid", "x", "y", "z"]]
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
 
 def encode_sequence(str_seq: pd.Series) -> np.ndarray:
     return str_seq.map(MAPPING).to_numpy(dtype=np.uint8)
@@ -48,8 +64,15 @@ def get_coordinates(coordinates: pd.DataFrame, scale: float, t: float = 0) -> np
     coord_values = coordinates[["x", "y", "z"]].values
     coord_values = coord_values - np.mean(coord_values, axis=0)
     coord_values = (coord_values / scale).astype(np.float32)
+<<<<<<< HEAD
     noise = np.random.randn(*coord_values.shape)
     coord_values = np.sqrt(1 - t) * coord_values + np.sqrt(t) * noise
+=======
+
+    noise = np.random.randn(*coord_values.shape)
+    coord_values = np.sqrt(1 - t) * coord_values + np.sqrt(t) * noise
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     return coord_values.astype(np.float32)
 
 
@@ -58,15 +81,25 @@ def get_output_tensor(coordinates: pd.DataFrame) -> np.ndarray:
     position_distances = distance_matrix(coord_values, coord_values)
     return position_distances[np.newaxis, :, :].astype(np.float32)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
 class RNADataset(Dataset):
     def __init__(self, df: pd.DataFrame, presample: bool, min_t: float, max_t: float):
         self.samples = [group.copy() for _, group in df.groupby("target_id")]
         self.ts = None
         self.min_t = min_t
         self.max_t = max_t
+<<<<<<< HEAD
         if presample:
             self.ts = [self._sample_t() for _ in range(len(self.samples))]
+=======
+
+        if presample:
+            self.ts = [self._sample_t() for _ in range(len(self.samples))]
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
         self.std_devs = [get_distance_std_dev(seq) for seq in self.samples]
 
     def _sample_t(self):
@@ -80,11 +113,28 @@ class RNADataset(Dataset):
         sequence = self.samples[idx]
         t = self.ts[idx] if self.ts else self._sample_t()
         std_dev = self.std_devs[idx]
+<<<<<<< HEAD
         X = get_coordinates(sequence, std_dev, float(t))
         S = encode_sequence(sequence["resname"])
         Y = get_output_tensor(sequence)
         return X, S, t, Y, std_dev
 
+=======
+
+        X = get_coordinates(sequence, std_dev, float(t))
+        S = encode_sequence(sequence["resname"])
+        Y = get_output_tensor(sequence)
+
+        return X, S, t, Y, std_dev
+
+def find_csv(folder: str) -> str:
+    """Return the first CSV file found in a folder (Azure mounts a folder per data asset)."""
+    for f in os.listdir(folder):
+        if f.endswith(".csv"):
+            return os.path.join(folder, f)
+    raise FileNotFoundError(f"No CSV found in {folder}")
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
 
 def load_and_preprocess(
     train_sequences_dir: str,
@@ -92,6 +142,7 @@ def load_and_preprocess(
     validation_sequences_dir: str,
     output_dir: str,
 ):
+<<<<<<< HEAD
     sequences = pd.read_csv(os.path.join(train_sequences_dir, "train_sequences.v2.csv"))
     labels = pd.read_csv(os.path.join(train_labels_dir, "train_labels.v2.csv"))
     test_sequences = pd.read_csv(os.path.join(validation_sequences_dir, "validation_sequences.csv"))
@@ -101,10 +152,26 @@ def load_and_preprocess(
 
     duplicate_sequences = test_sequences.merge(sequences, on="sequence", suffixes=("_test", "_train"))
     labels["target_id"] = labels["ID"].map(strip_suffix)
+=======
+    print("Loading data...")
+    sequences = pd.read_csv(find_csv(train_sequences_dir))
+    labels = pd.read_csv(find_csv(train_labels_dir))
+    test_sequences = pd.read_csv(find_csv(validation_sequences_dir))
+
+    print("Filtering sequences longer than 1024...")
+    lengths = sequences["sequence"].str.len()
+    sequences = sequences[lengths <= 1024]
+
+    print("Removing test sequences from training data...")
+    duplicate_sequences = test_sequences.merge(sequences, on="sequence", suffixes=("_test", "_train"))
+    labels["target_id"] = labels["ID"].map(strip_suffix)
+
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     labels = labels[~labels["target_id"].isin(duplicate_sequences["target_id_train"])]
     sequences = sequences[~sequences["sequence"].isin(test_sequences["sequence"])]
 
     df = labels[labels["target_id"].isin(sequences["target_id"])]
+<<<<<<< HEAD
     X = unstack_sequences(df)
 
     invalid = X[~X["resname"].isin(VALID_BASES)]["target_id"].unique()
@@ -112,14 +179,37 @@ def load_and_preprocess(
 
     os.makedirs(output_dir, exist_ok=True)
     X.to_parquet(os.path.join(output_dir, "processed_data.parquet"), index=False)
+=======
+
+    print("Unstacking sequences...")
+    X = unstack_sequences(df)
+
+    print("Removing invalid nucleotides...")
+    invalid = X[~X["resname"].isin(VALID_BASES)]["target_id"].unique()
+    X = X[~X["target_id"].isin(invalid)]
+
+    print(f"Remaining sequences: {X['target_id'].nunique()}")
+
+    os.makedirs(output_dir, exist_ok=True)
+    out_path = os.path.join(output_dir, "processed_data.parquet")
+    X.to_parquet(out_path, index=False)
+    print(f"Saved processed data to {out_path}")
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+<<<<<<< HEAD
     parser.add_argument("--train_sequences_dir", type=str, required=True)
     parser.add_argument("--train_labels_dir", type=str, required=True)
     parser.add_argument("--validation_sequences_dir", type=str, required=True)
     parser.add_argument("--output_dir", type=str, default="./outputs/data")
+=======
+    parser.add_argument("--train_sequences_dir", type=str, required=True, help="Folder for train_sequences_v2 data asset")
+    parser.add_argument("--train_labels_dir", type=str, required=True, help="Folder for train_labels_v2 data asset")
+    parser.add_argument("--validation_sequences_dir", type=str, required=True, help="Folder for validation_sequences data asset")
+    parser.add_argument("--output_dir", type=str, default="./outputs/data", help="Where to save processed data")
+>>>>>>> 2e15c95 (Add Azure ML pipeline)
     args = parser.parse_args()
 
     load_and_preprocess(
