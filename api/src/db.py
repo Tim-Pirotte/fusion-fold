@@ -193,3 +193,17 @@ async def change_account_display_name(settings: s.Settings, account_id: int, dis
         )
 
         return result.rowcount == 1
+
+async def reset_password(settings: s.Settings, account_id: int, hash: bytes) -> bool:
+    async with get_postgres_connection(settings, 'app_default') as connection:
+        account = await connection.get(m.Account, account_id)
+
+        if account is None:
+            return False
+
+        if account.status != m.AccountStatus.enabled:
+             return False
+
+        account.password_hash = hash
+
+        return True
