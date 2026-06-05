@@ -59,17 +59,23 @@ secrets:
   redis_acl:
     file: ./redis/users.acl
   redis_write:
-    file: ./redis/write.secret
+    file: ./redis/users/write.secret
   redis_read_delete:
-    file: ./redis/read_delete.secret
+    file: ./redis/users/read_delete.secret
 
   pg_admin:
-    file: ./postgres/admin.secret
+    file: ./postgres/users/admin.secret
   postgres_accounts_s:
-    file: ./postgres/accounts_s.secret
+    file: ./postgres/users/accounts_s.secret
   postgres_accounts_su:
-    file: ./postgres/accounts_su.secret
+    file: ./postgres/users/accounts_su.secret
   postgres_accounts_siu:
-    file: ./postgres/accounts_siu.secret
+    file: ./postgres/users/accounts_siu.secret
   postgres_accounts_sd:
-    file: ./postgres/accounts_sd.secret
+    file: ./postgres/users/accounts_sd.secret
+  postgres_predictions_s:
+    file: ./postgres/users/predictions_s.secret
+  postgres_predictions_i:
+    file: ./postgres/users/predictions_i.secret
+  postgres_predictions_d:
+    file: ./postgres/users/predictions_d.secret
