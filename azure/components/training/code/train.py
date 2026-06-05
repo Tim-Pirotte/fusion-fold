@@ -244,13 +244,17 @@ def run_validation_epoch(model, loader, loss_fn, device):
             loss = loss_fn(prediction, y, std_dev)
             metrics["loss_sum"] += loss.item() * len(y)
             metrics["sample_count"] += len(y)
-            coords_pred, invalidity_score = distances_to_coords(prediction[0, 0].float().cpu().numpy())
+            coords_pred, invalidity_score = distances_to_coords(
+                prediction[0, 0].float().cpu().numpy()
+            )
             coords_y, _ = distances_to_coords(y[0, 0].cpu().numpy())
             metrics["invalidity_score_sum"] += invalidity_score
             val_tm = tm_score(coords_y, coords_pred)
             metrics["tm_score_sum"] += val_tm
             if i <= 3:
-                metrics["samples"].append((align_points(coords_y, coords_pred), coords_y, val_tm))
+                metrics["samples"].append(
+                    (align_points(coords_y, coords_pred), coords_y, val_tm)
+                )
 
             if i % 10 == 0:
                 print(f"Val progress: {i}/{len(loader)} ({i / len(loader) * 100:.1f}%)", end="\r")
