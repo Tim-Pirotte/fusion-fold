@@ -79,7 +79,7 @@ class SessionRequest(p.BaseModel):
 class SessionResponse(p.BaseModel):
     sessionId: str
 
-@app.post(
+@protected.post(
     '/v1/folding-sessions',
     response_model=SessionResponse,
     tags=['folding'],
@@ -92,7 +92,7 @@ async def create_folding_session(payload: SessionRequest):
 
     return { 'sessionId': session_id }
 
-@app.get(
+@protected.get(
     '/v1/folding-sessions/{session_id}',
     tags=['folding'],
     summary='Streams a folding session',
