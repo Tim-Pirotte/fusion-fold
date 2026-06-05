@@ -1,16 +1,30 @@
 REVOKE CONNECT ON DATABASE rna_folding FROM PUBLIC;
 REVOKE CONNECT ON DATABASE rna_folding FROM postgres;
 
-CREATE USER app_default WITH PASSWORD 'example';
-GRANT ALL PRIVILEGES ON DATABASE rna_folding TO app_default;
-GRANT CONNECT ON DATABASE rna_folding TO app_default;
-
 CREATE TYPE account_status AS ENUM ('enabled', 'disabled', 'unverified');
 
 CREATE TABLE accounts (
-    id SERIAL PRIMARY KEY,
+    id            SERIAL PRIMARY KEY,
     display_name  VARCHAR(255) NOT NULL,
     mail          VARCHAR(255) NOT NULL UNIQUE,
     password_hash BYTEA,
-    status        account_status NOT NULL DEFAULT 'unverified',
+    status        account_status NOT NULL DEFAULT 'unverified'
 );
+
+CREATE USER app_default WITH PASSWORD 'example';
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_default;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_default;
+GRANT CONNECT ON DATABASE rna_folding TO app_default;
+
+CREATE USER accounts_s WITH PASSWORD 'example';
+GRANT CONNECT ON DATABASE rna_folding TO accounts_s;
+GRANT SELECT ON accounts TO accounts_s;
+
+CREATE USER accounts_siu WITH PASSWORD 'example';
+GRANT CONNECT ON DATABASE rna_folding TO accounts_siu;
+GRANT SELECT, INSERT, UPDATE ON accounts TO accounts_siu;
+GRANT USAGE, SELECT ON SEQUENCE accounts_id_seq TO accounts_siu;
+
+CREATE USER accounts_sd WITH PASSWORD 'example';
+GRANT CONNECT ON DATABASE rna_folding TO accounts_sd;
+GRANT SELECT, DELETE ON accounts TO accounts_sd;
