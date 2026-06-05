@@ -49,7 +49,15 @@ class Settings(ps.BaseSettings):
 
     @p.model_validator(mode='after')
     def validate_ranges(self) -> 'Settings':
-        fields = ['password_len', 'mail_len', 'display_name_len', 'display_name_len', 'seq_len', 'folds', 'steps']
+        fields = [
+            'password_len',
+            'mail_len',
+            'display_name_len',
+            'display_name_len',
+            'seq_len',
+            'folds',
+            'steps',
+        ]
 
         for field in fields:
             min_v = getattr(self, f'min_{field}')
@@ -66,7 +74,9 @@ class Settings(ps.BaseSettings):
         min_memory_mb = min_memory / (1024**2)
 
         if self.scrypt_max_mem_mb < min_memory_mb:
-            raise ValueError(f'scrypt_max_mem_mb should be at least {min_memory_mb} (128 * n * r * p)')
+            raise ValueError(
+                f'scrypt_max_mem_mb should be at least {min_memory_mb} (128 * n * r * p)',
+            )
 
         salt = secrets.token_bytes(self.scrypt_salt_bytes)
 
@@ -81,7 +91,7 @@ class Settings(ps.BaseSettings):
                 dklen=self.scrypt_dklen,
             )
         except ValueError as e:
-            raise ValueError(f'scrypt_max_mem_mb is too low for the given parameters') from e
+            raise ValueError('scrypt_max_mem_mb is too low for the given parameters') from e
 
         return self
 
