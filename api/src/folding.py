@@ -184,7 +184,12 @@ class RNAConvModel(torch.nn.Module):
         self.time_encoding = SinusoidalEncoding(time_encoding_length)
         self.position_encoding = SinusoidalEncoding(position_encoding_length)
 
-        input_channels = distance_channels + relational_embedding_length + position_encoding_length + time_encoding_length
+        input_channels = (
+            distance_channels +
+            relational_embedding_length +
+            position_encoding_length +
+            time_encoding_length
+        )
 
         self.stem = torch.nn.Sequential(
             torch.nn.Conv2d(input_channels, hidden_size, kernel_size=1),
