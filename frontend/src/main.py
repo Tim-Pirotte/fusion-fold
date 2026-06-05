@@ -1,6 +1,5 @@
-"""Frontend app entrypoint."""
-
 # pylint: disable=duplicate-code
+"""Frontend app entrypoint."""
 
 import flask as fl
 
