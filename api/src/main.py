@@ -32,7 +32,7 @@ app.add_middleware(
 )
 
 settings = s.Settings()
-serializer = URLSafeTimedSerializer(Path(f'/run/secrets/serializer_secret').read_text().strip())
+serializer = URLSafeTimedSerializer(Path('/run/secrets/serializer_secret').read_text(encoding='utf-8').strip())
 
 async def get_current_account(auth_token: str = fa.Cookie(default='')) -> int:
     data = a.get_auth_token_data(settings, auth_token)
@@ -47,8 +47,8 @@ async def get_current_account(auth_token: str = fa.Cookie(default='')) -> int:
 
     try:
         return int(account_id)
-    except ValueError:
-        raise fa.HTTPException(status_code=fa.status.HTTP_401_UNAUTHORIZED)
+    except ValueError as e:
+        raise fa.HTTPException(status_code=fa.status.HTTP_401_UNAUTHORIZED) from e
 
 protected = fa.APIRouter(
     dependencies=[fa.Depends(get_current_account)],
@@ -64,7 +64,12 @@ async def database_error_handler(*_):
     raise fa.HTTPException(status_code=503, detail='Database service unavailable')
 
 class SessionRequest(p.BaseModel):
-    sequence: str = p.Field(min_length=settings.min_seq_len, max_length=settings.max_seq_len, pattern='^[AUGC]*$')
+    sequence: str = p.Field(
+        min_length=settings.min_seq_len,
+        max_length=settings.max_seq_len,
+        pattern='^[AUGC]*$'
+    )
+
     folds_to_generate: int = p.Field(ge=settings.min_folds, le=settings.max_folds)
     steps_per_fold: int = p.Field(ge=settings.min_steps, le=settings.max_steps)
     return_noise: bool
@@ -77,7 +82,8 @@ class SessionResponse(p.BaseModel):
     response_model=SessionResponse,
     tags=['folding'],
     summary='Creates a folding session',
-    description='Creates a new folding session that can be used for streaming at /v1/folding-sessions/{session_id}',
+    description='Creates a new folding session that can be used for streaming at'
+                ' /v1/folding-sessions/{session_id}',
 )
 async def create_folding_session(payload: SessionRequest):
     session_id = db.create_session(settings, payload.model_dump_json())
