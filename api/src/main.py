@@ -32,7 +32,9 @@ app.add_middleware(
 )
 
 settings = s.Settings()
-serializer = URLSafeTimedSerializer(Path('/run/secrets/serializer_secret').read_text(encoding='utf-8').strip())
+serializer = URLSafeTimedSerializer(
+    Path('/run/secrets/serializer_secret').read_text(encoding='utf-8').strip(),
+)
 
 async def get_current_account(auth_token: str = fa.Cookie(default='')) -> int:
     data = a.get_auth_token_data(settings, auth_token)
@@ -126,7 +128,10 @@ def folding_streamer(session: SessionRequest) -> typing.Iterator[str]:
         logger.info('ending folding early due to client disconnect')
 
 class CreateAccountRequest(p.BaseModel):
-    display_name: str = p.Field(min_length=settings.min_display_name_len, max_length=settings.max_display_name_len)
+    display_name: str = p.Field(
+        min_length=settings.min_display_name_len, max_length=settings.max_display_name_len,
+    )
+
     mail: str = p.Field(min_length=settings.min_mail_len, max_length=settings.max_mail_len)
 
 @app.post(
@@ -151,13 +156,16 @@ async def create_account(request: CreateAccountRequest):
     return fa.Response(status_code=fa.status.HTTP_202_ACCEPTED)
 
 class CompleteAccountRequest(p.BaseModel):
-    password: str = p.Field(min_length=settings.min_password_len, max_length=settings.max_password_len)
+    password: str = p.Field(
+        min_length=settings.min_password_len, max_length=settings.max_password_len,
+    )
 
 @app.patch(
     '/v1/accounts/{token}',
     tags=['accounts'],
     summary='Completes a created account',
-    description='Completes an account with a password and changes the account status from unverified to enabled',
+    description='Completes an account with a password'
+                ' and changes the account status from unverified to enabled',
     status_code=fa.status.HTTP_204_NO_CONTENT,
     responses={
         400: {'description': 'Invalid token'},
@@ -201,7 +209,10 @@ def set_auth_cookie(response: fa.Response, account_id: int):
     )
 
 class LoginRequest(p.BaseModel):
-    mail: str = p.Field(min_length=settings.min_mail_len, max_length=settings.max_mail_len)
+    mail: str = p.Field(
+        min_length=settings.min_mail_len, max_length=settings.max_mail_len,
+    )
+
     password: str = p.Field(min_length=settings.min_password_len, max_length=settings.max_password_len)
 
 @app.post(
@@ -285,7 +296,9 @@ async def delete_account(account_id: int = fa.Depends(get_current_account)):
     return await logout()
 
 class UpdateDisplayNameRequest(p.BaseModel):
-    display_name: str = p.Field(min_length=settings.min_display_name_len, max_length=settings.max_display_name_len)
+    display_name: str = p.Field(
+        min_length=settings.min_display_name_len, max_length=settings.max_display_name_len,
+    )
 
 @protected.put(
     '/v1/accounts/display-name',
@@ -297,7 +310,9 @@ class UpdateDisplayNameRequest(p.BaseModel):
         404: {'description': 'Account does not exist or is not enabled'},
     },
 )
-async def change_display_name(request: UpdateDisplayNameRequest, account_id: int = fa.Depends(get_current_account)):
+async def change_display_name(
+    request: UpdateDisplayNameRequest, account_id: int = fa.Depends(get_current_account)
+):
     if not await db.change_account_display_name(settings, account_id, request.display_name):
         return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
 
@@ -325,14 +340,18 @@ async def send_reset_mail(request: ResetPasswordMailRequest):
     return fa.Response(status_code=fa.status.HTTP_202_ACCEPTED)
 
 class ResetPasswordRequest(p.BaseModel):
-    password: str = p.Field(min_length=settings.min_password_len, max_length=settings.max_password_len)
+    password: str = p.Field(
+        min_length=settings.min_password_len, max_length=settings.max_password_len,
+    )
 
 # In a real production app you should probably invalidate the token after use
 @app.put(
     '/v1/accounts/password/{token}',
     tags=['accounts'],
     summary='Resets the password',
-    description='Resets the password of the account linked to the e-mail the verification was send to and logs the user in',
+    description='Resets the password of the account'
+                ' linked to the e-mail the verification was send to'
+                ' and logs the user in',
     status_code=fa.status.HTTP_204_NO_CONTENT,
     responses={
         400: {'description': 'Invalid token'},
