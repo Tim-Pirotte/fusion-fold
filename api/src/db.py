@@ -130,7 +130,7 @@ def get_session(settings: s.Settings, session_id: str) -> str | None:
     return pipe.execute()[0]
 
 async def create_account(settings: s.Settings, display_name: str, mail: str) -> int | None:
-    async with get_postgres_connection(settings, 'app_default') as connection:
+    async with get_postgres_connection(settings, 'accounts_siu') as connection:
         existing = await connection.execute(al.select(m.Account).where(m.Account.mail == mail))
         existing_account = existing.scalar_one_or_none()
 
@@ -145,7 +145,7 @@ async def create_account(settings: s.Settings, display_name: str, mail: str) -> 
         account = m.Account(
             display_name=display_name,
             mail=mail,
-            status=m.AccountStatus.UNVERIFIED
+            status=m.AccountStatus.UNVERIFIED,
         )
 
         connection.add(account)
@@ -154,7 +154,7 @@ async def create_account(settings: s.Settings, display_name: str, mail: str) -> 
         return account.id
 
 async def complete_account(settings: s.Settings, account_id: int, password_hash: bytes) -> bool:
-    async with get_postgres_connection(settings, 'app_default') as connection:
+    async with get_postgres_connection(settings, 'accounts_su') as connection:
         account = await connection.get(m.Account, account_id)
 
         if account is None:
@@ -169,11 +169,11 @@ async def complete_account(settings: s.Settings, account_id: int, password_hash:
         return True
 
 async def get_account(settings: s.Settings, account_id: int) -> m.Account | None:
-    async with get_postgres_connection(settings, 'app_default') as connection:
+    async with get_postgres_connection(settings, 'accounts_s') as connection:
         return await connection.get(m.Account, account_id)
 
 async def get_account_by_mail(settings: s.Settings, mail: str) -> m.Account | None:
-    async with get_postgres_connection(settings, 'app_default') as connection:
+    async with get_postgres_connection(settings, 'accounts_s') as connection:
         account = await connection.execute(
             al.select(m.Account).where(m.Account.mail == mail),
         )
@@ -181,7 +181,7 @@ async def get_account_by_mail(settings: s.Settings, mail: str) -> m.Account | No
         return account.scalar_one_or_none()
 
 async def delete_account(settings: s.Settings, account_id: int) -> bool:
-    async with get_postgres_connection(settings, 'app_default') as connection:
+    async with get_postgres_connection(settings, 'accounts_sd') as connection:
         result = await connection.execute(
             al.delete(m.Account)
                 .where(m.Account.id == account_id)
@@ -191,7 +191,7 @@ async def delete_account(settings: s.Settings, account_id: int) -> bool:
         return result.rowcount == 1
 
 async def change_account_display_name(settings: s.Settings, account_id: int, display_name) -> bool:
-    async with get_postgres_connection(settings, 'app_default') as connection:
+    async with get_postgres_connection(settings, 'accounts_su') as connection:
         result = await connection.execute(
             al.update(m.Account)
                 .where(m.Account.id == account_id)
@@ -202,7 +202,7 @@ async def change_account_display_name(settings: s.Settings, account_id: int, dis
         return result.rowcount == 1
 
 async def reset_password(settings: s.Settings, account_id: int, password_hash: bytes) -> bool:
-    async with get_postgres_connection(settings, 'app_default') as connection:
+    async with get_postgres_connection(settings, 'accounts_su') as connection:
         account = await connection.get(m.Account, account_id)
 
         if account is None:

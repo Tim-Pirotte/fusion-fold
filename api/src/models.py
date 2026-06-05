@@ -19,6 +19,10 @@ class Account(Base):
     mail: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     password_hash: Mapped[bytes] = mapped_column(LargeBinary, nullable=True)
     status: Mapped[AccountStatus] = mapped_column(
-        Enum(AccountStatus, name='account_status'),
-        default=AccountStatus.UNVERIFIED
+        Enum(
+            AccountStatus,
+            name="account_status",
+            values_callable=lambda enum_cls: [e.value for e in enum_cls],
+        ),
+        default=AccountStatus.UNVERIFIED,
     )
