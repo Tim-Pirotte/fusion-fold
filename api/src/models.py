@@ -7,9 +7,9 @@ class Base(DeclarativeBase):
     pass
 
 class AccountStatus(str, enum.Enum):
-    enabled = 'enabled'
-    disabled = 'disabled'
-    unverified = 'unverified'
+    ENABLED = 'enabled'
+    DISABLED = 'disabled'
+    UNVERIFIED = 'unverified'
 
 class Account(Base):
     __tablename__ = 'accounts'
@@ -20,5 +20,5 @@ class Account(Base):
     password_hash: Mapped[bytes] = mapped_column(LargeBinary, nullable=True)
     status: Mapped[AccountStatus] = mapped_column(
         Enum(AccountStatus, name='account_status'),
-        default=AccountStatus.unverified
+        default=AccountStatus.UNVERIFIED
     )

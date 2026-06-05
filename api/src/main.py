@@ -231,7 +231,7 @@ async def login(request: LoginRequest):
     if account is None:
         return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
-    if account.status != mo.AccountStatus.enabled:
+    if account.status != mo.AccountStatus.ENABLED:
         return fa.Response(status_code=fa.status.HTTP_400_BAD_REQUEST)
 
     if not a.verify_password(settings, request.password, account.password_hash):
@@ -272,7 +272,7 @@ class GetAccountResponse(p.BaseModel):
 async def get_account(account_id: int = fa.Depends(get_current_account)):
     account = await db.get_account(settings, account_id)
 
-    if account is None or account.status != mo.AccountStatus.enabled:
+    if account is None or account.status != mo.AccountStatus.ENABLED:
         return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
 
     return {
