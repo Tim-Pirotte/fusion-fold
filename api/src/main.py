@@ -313,7 +313,9 @@ class UpdateDisplayNameRequest(p.BaseModel):
 async def change_display_name(
     request: UpdateDisplayNameRequest, account_id: int = fa.Depends(get_current_account)
 ):
-    if not await db.change_account_display_name(settings, account_id, request.display_name):
+    if not await db.change_account_display_name(
+        settings, account_id, request.display_name,
+    ):
         return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
 
     return fa.Response(status_code=fa.status.HTTP_204_NO_CONTENT)
