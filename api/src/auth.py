@@ -25,9 +25,9 @@ def hash_password(settings: s.Settings, password: str) -> bytes:
 
     return salt + key
 
-def verify_password(settings: s.Settings, password: str, hash: bytes) -> bool:
-    salt = hash[:settings.scrypt_salt_bytes]
-    expected_key = hash[settings.scrypt_salt_bytes:]
+def verify_password(settings: s.Settings, password: str, password_hash: bytes) -> bool:
+    salt = password_hash[:settings.scrypt_salt_bytes]
+    expected_key = password_hash[settings.scrypt_salt_bytes:]
 
     actual_key = hashlib.scrypt(
         password.encode(),
@@ -61,6 +61,6 @@ def get_jwt_secret():
     global _jwt_secret
 
     if _jwt_secret is None:
-        _jwt_secret = Path(f'/run/secrets/jwt_secret').read_text().strip()
+        _jwt_secret = Path('/run/secrets/jwt_secret').read_text(encoding='utf-8').strip()
 
     return _jwt_secret
