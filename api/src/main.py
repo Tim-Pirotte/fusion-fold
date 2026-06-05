@@ -287,6 +287,7 @@ async def get_account(account_id: int = fa.Depends(get_current_account)):
     tags=['accounts'],
     summary='Deletes the account of the current session',
     description='Deletes the account data of the currently logged in user and logs the user out',
+    status_code=fa.status.HTTP_204_NO_CONTENT,
     responses={
         404: {'description': 'Account does not exist or is not enabled'},
     },
