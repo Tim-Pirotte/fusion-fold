@@ -135,7 +135,7 @@ async def create_account(settings: s.Settings, display_name: str, mail: str) -> 
         existing_account = existing.scalar_one_or_none()
 
         if existing_account:
-            if existing_account.status == m.AccountStatus.unverified:
+            if existing_account.status == m.AccountStatus.UNVERIFIED:
                 existing_account.display_name = display_name
 
                 return existing_account.id
@@ -145,7 +145,7 @@ async def create_account(settings: s.Settings, display_name: str, mail: str) -> 
         account = m.Account(
             display_name=display_name,
             mail=mail,
-            status=m.AccountStatus.unverified
+            status=m.AccountStatus.UNVERIFIED
         )
 
         connection.add(account)
@@ -160,11 +160,11 @@ async def complete_account(settings: s.Settings, account_id: int, password_hash:
         if account is None:
             return False
 
-        if account.status != m.AccountStatus.unverified:
+        if account.status != m.AccountStatus.UNVERIFIED:
             return False
 
         account.password_hash = password_hash
-        account.status = m.AccountStatus.enabled
+        account.status = m.AccountStatus.ENABLED
 
         return True
 
@@ -185,7 +185,7 @@ async def delete_account(settings: s.Settings, account_id: int) -> bool:
         result = await connection.execute(
             al.delete(m.Account)
                 .where(m.Account.id == account_id)
-                .where(m.Account.status == m.AccountStatus.enabled),
+                .where(m.Account.status == m.AccountStatus.ENABLED),
         )
 
         return result.rowcount == 1
@@ -195,7 +195,7 @@ async def change_account_display_name(settings: s.Settings, account_id: int, dis
         result = await connection.execute(
             al.update(m.Account)
                 .where(m.Account.id == account_id)
-                .where(m.Account.status == m.AccountStatus.enabled)
+                .where(m.Account.status == m.AccountStatus.ENABLED)
                 .values(display_name=display_name),
         )
 
@@ -208,7 +208,7 @@ async def reset_password(settings: s.Settings, account_id: int, password_hash: b
         if account is None:
             return False
 
-        if account.status != m.AccountStatus.enabled:
+        if account.status != m.AccountStatus.ENABLED:
             return False
 
         account.password_hash = password_hash
