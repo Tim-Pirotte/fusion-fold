@@ -58,7 +58,12 @@ class FoldingStep(TypedDict):
     step: int
     coords: list[list[float]]
 
-def folding_iterator(sequence: str, folds_to_generate: int, steps_per_fold: int, return_noise: bool) -> Iterator[FoldingStep]:
+def folding_iterator(
+    sequence: str,
+    folds_to_generate: int,
+    steps_per_fold: int,
+    return_noise: bool,
+) -> Iterator[FoldingStep]:
     model = get_model()
 
     num_nucleotides = len(sequence)
@@ -130,10 +135,24 @@ class ResBlock(torch.nn.Module):
     def __init__(self, channels, kernel_size=3, dilation=1):
         super().__init__()
 
-        self.conv1 = torch.nn.Conv2d(channels, channels, kernel_size, padding='same', dilation=dilation)
+        self.conv1 = torch.nn.Conv2d(
+            channels,
+            channels,
+            kernel_size,
+            padding='same',
+            dilation=dilation,
+        )
+
         self.norm1 = torch.nn.GroupNorm(8, channels)
         self.act1  = torch.nn.SiLU(inplace=True)
-        self.conv2 = torch.nn.Conv2d(channels, channels, kernel_size, padding='same', dilation=dilation)
+        self.conv2 = torch.nn.Conv2d(
+            channels,
+            channels,
+            kernel_size,
+            padding='same',
+            dilation=dilation,
+        )
+
         self.norm2 = torch.nn.GroupNorm(8, channels)
         self.act2  = torch.nn.SiLU(inplace=True)
 
