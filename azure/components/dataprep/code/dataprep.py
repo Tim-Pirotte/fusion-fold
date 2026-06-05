@@ -31,6 +31,7 @@ def unstack_sequences(sequences: pd.DataFrame) -> pd.DataFrame:
     result = result.reset_index(drop=True)
     return result[["target_id", "resname", "resid", "x", "y", "z"]]
 
+
 def encode_sequence(str_seq: pd.Series) -> np.ndarray:
     return str_seq.map(MAPPING).to_numpy(dtype=np.uint8)
 
@@ -78,10 +79,10 @@ class RNADataset(Dataset):
         sequence = self.samples[idx]
         t = self.ts[idx] if self.ts else self._sample_t()
         std_dev = self.std_devs[idx]
-        X = get_coordinates(sequence, std_dev, float(t))
-        S = encode_sequence(sequence["resname"])
-        Y = get_output_tensor(sequence)
-        return X, S, t, Y, std_dev
+        coordinates = get_coordinates(sequence, std_dev, float(t))
+        sequence_encoding = encode_sequence(sequence["resname"])
+        target_tensor = get_output_tensor(sequence)
+        return coordinates, sequence_encoding, t, target_tensor, std_dev
 
 
 
@@ -98,20 +99,24 @@ def load_and_preprocess(
     lengths = sequences["sequence"].str.len()
     sequences = sequences[lengths <= 1024]
 
-    duplicate_sequences = test_sequences.merge(sequences, on="sequence", suffixes=("_test", "_train"))
+    duplicate_sequences = test_sequences.merge(
+        sequences,
+        on="sequence",
+        suffixes=("_test", "_train"),
+    )
     labels["target_id"] = labels["ID"].map(strip_suffix)
 
     labels = labels[~labels["target_id"].isin(duplicate_sequences["target_id_train"])]
     sequences = sequences[~sequences["sequence"].isin(test_sequences["sequence"])]
 
     df = labels[labels["target_id"].isin(sequences["target_id"])]
-    X = unstack_sequences(df)
+    processed_data = unstack_sequences(df)
 
-    invalid = X[~X["resname"].isin(VALID_BASES)]["target_id"].unique()
-    X = X[~X["target_id"].isin(invalid)]
+    invalid = processed_data[~processed_data["resname"].isin(VALID_BASES)]["target_id"].unique()
+    processed_data = processed_data[~processed_data["target_id"].isin(invalid)]
 
     os.makedirs(output_dir, exist_ok=True)
-    X.to_parquet(os.path.join(output_dir, "processed_data.parquet"), index=False)
+    processed_data.to_parquet(os.path.join(output_dir, "processed_data.parquet"), index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

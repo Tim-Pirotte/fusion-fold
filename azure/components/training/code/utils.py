@@ -1,16 +1,13 @@
 import os
-import math
 import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from matplotlib.lines import Line2D
-from scipy.spatial.distance import cdist
 from datetime import datetime
 
 import torch
-import torch.nn as nn
 
 def distances_to_coords(distances: np.ndarray) -> tuple[np.ndarray, float]:
     n = distances.shape[0]
@@ -38,7 +35,6 @@ def align_points(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     aa = a - centroid_a
     bb = b - centroid_b
 
-
     h = aa.T @ bb
     u, _, vt = np.linalg.svd(h)
     r = vt.T @ u.T
@@ -65,6 +61,8 @@ def d0_scaling(l):
         if l < threshold:
             return val
 
+    return bins[-1][1]
+
 
 def tm_score(a: np.ndarray, b: np.ndarray) -> float:
     b_aligned = align_points(a, b)
@@ -80,7 +78,7 @@ def create_run_dir(experiment_name: str, base_dir: str = "outputs") -> str:
     )
     os.makedirs(run_dir, exist_ok=True)
 
-    with open(os.path.join(run_dir, "summary.csv"), "w") as f:
+    with open(os.path.join(run_dir, "summary.csv"), "w", encoding="utf-8") as f:
         f.write(
             "Epoch,Learning rate,Average training loss,Average validation loss,"
             "Estimated average validation TM-score,Average validation validity score\n"
@@ -107,7 +105,7 @@ def display_save_metrics(run_dir: str, epoch: int, metrics: dict):
     val_tm = metrics["validation"][-1]["tm_score_sum"] / metrics["validation"][-1]["sample_count"]
     val_inv = metrics["validation"][-1]["invalidity_score_sum"] / metrics["validation"][-1]["sample_count"]
 
-    with open(os.path.join(run_dir, "summary.csv"), "a") as f:
+    with open(os.path.join(run_dir, "summary.csv"), "a", encoding="utf-8") as f:
         f.write(f"{epoch},{lr},{train_loss},{val_loss},{val_tm},{val_inv}\n")
 
     print(f"Epoch {epoch}:")
@@ -137,7 +135,13 @@ def save_loss_curve(run_dir: str, metrics: dict):
     plt.savefig(os.path.join(run_dir, "loss_curve.png"))
 
 
-def plot_points(points: pd.DataFrame, ax, title: str = "", tm_score_val: float = 0, limit: bool = False):
+def plot_points(
+    points: pd.DataFrame,
+    ax,
+    title: str = "",
+    tm_score_val: float = 0,
+    limit: bool = False,
+):
     unique_ids = points["id"].unique()
     base_maps = ["Reds", "Blues", "Greens", "Oranges", "Purples", "Greys"]
 
@@ -150,10 +154,23 @@ def plot_points(points: pd.DataFrame, ax, title: str = "", tm_score_val: float =
     for i, pid in enumerate(unique_ids):
         subset = points[points["id"] == pid]
         cmap = plt.get_cmap(base_maps[i % len(base_maps)])
-        ax.scatter(subset["x"], subset["y"], subset["z"],
-                   cmap=cmap, c=subset["x"] + subset["y"] + subset["z"], s=8)
-        handle = Line2D([0], [0], marker="o", color="w",
-                        markerfacecolor=cmap(0.6), markersize=8, label=pid)
+        ax.scatter(
+            subset["x"],
+            subset["y"],
+            subset["z"],
+            cmap=cmap,
+            c=subset["x"] + subset["y"] + subset["z"],
+            s=8,
+        )
+        handle = Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            markerfacecolor=cmap(0.6),
+            markersize=8,
+            label=pid,
+        )
         legend_handles.append(handle)
     ax.legend(handles=legend_handles, loc="lower left", fontsize=8)
     if limit:
@@ -161,9 +178,15 @@ def plot_points(points: pd.DataFrame, ax, title: str = "", tm_score_val: float =
         ax.set_ylim(-15, 15)
         ax.set_zlim(-15, 15)
 
-    ax.text2D(0.05, 0.95, f"TM-score: {tm_score_val:.4f}", transform=ax.transAxes,
-              fontsize=9, verticalalignment="top",
-              bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
+    ax.text2D(
+        0.05,
+        0.95,
+        f"TM-score: {tm_score_val:.4f}",
+        transform=ax.transAxes,
+        fontsize=9,
+        verticalalignment="top",
+        bbox={"boxstyle": "round", "facecolor": "wheat", "alpha": 0.5},
+    )
 
 
 def plot_validation_samples(run_dir: str, plot_samples: list, epoch: int):
@@ -175,7 +198,13 @@ def plot_validation_samples(run_dir: str, plot_samples: list, epoch: int):
         df_y = pd.DataFrame(coords_y, columns=["x", "y", "z"])
         df_y["id"] = "Actual"
         combined = pd.concat([df_pred, df_y], ignore_index=True)
-        plot_points(combined, ax=ax, title=f"Sample {col + 1}", tm_score_val=sample_tm, limit=True)
+        plot_points(
+            combined,
+            ax=ax,
+            title=f"Sample {col + 1}",
+            tm_score_val=sample_tm,
+            limit=True,
+        )
 
     plt.tight_layout()
     plt.savefig(os.path.join(run_dir, f"epoch_{epoch}_val_plots.png"))
