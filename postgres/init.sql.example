@@ -11,11 +11,6 @@ CREATE TABLE accounts (
     status        account_status NOT NULL DEFAULT 'unverified'
 );
 
-CREATE USER app_default WITH PASSWORD 'example';
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_default;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_default;
-GRANT CONNECT ON DATABASE rna_folding TO app_default;
-
 CREATE USER accounts_s WITH PASSWORD 'example';
 GRANT CONNECT ON DATABASE rna_folding TO accounts_s;
 GRANT SELECT ON accounts TO accounts_s;

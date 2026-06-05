@@ -13,7 +13,6 @@ services:
       - jwt_secret
       - redis_write
       - redis_read_delete
-      - postgres_app_default
       - postgres_accounts_s
       - postgres_accounts_su
       - postgres_accounts_siu
@@ -66,8 +65,6 @@ secrets:
 
   pg_admin:
     file: ./postgres/admin.secret
-  postgres_app_default:
-    file: ./postgres/app_default.secret
   postgres_accounts_s:
     file: ./postgres/accounts_s.secret
   postgres_accounts_su:
