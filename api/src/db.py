@@ -107,7 +107,6 @@ def retry_on_error(
         return wrapper
     return decorator
 
-
 @handle_redis_errors
 @retry_on_error(1, 2, (r.ConnectionError, r.TimeoutError))
 def create_session(settings: s.Settings, data: str) -> str:
@@ -128,6 +127,16 @@ def get_session(settings: s.Settings, session_id: str) -> str | None:
     pipe.delete(session_id)
 
     return pipe.execute()[0]
+
+async def save_prediction(
+    settings: s.Settings,
+    account_id: int,
+    display_name: str,
+    sequence: str,
+    coords: list[list[float]],
+):
+    async with get_postgres_connection(settings, 'predictions_si') as connection:
+        pass
 
 async def create_account(settings: s.Settings, display_name: str, mail: str) -> int | None:
     async with get_postgres_connection(settings, 'accounts_siu') as connection:

@@ -120,9 +120,10 @@ def folding_streamer(session: SessionRequest) -> typing.Iterator[str]:
         ):
             yield f'data: {json.dumps(fold)}\n\n'
 
-        logger.info('finished folding')
-
         yield 'event: end\ndata: null\n\n'
+
+        logger.info('finished folding')
+        db.save_prediction(session.sequence, fold.coords)
 
     except (GeneratorExit, asyncio.CancelledError):
         logger.info('ending folding early due to client disconnect')
