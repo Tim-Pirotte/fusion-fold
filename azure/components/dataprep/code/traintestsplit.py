@@ -4,7 +4,12 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
-def split_data(processed_data_path: str, output_dir: str, test_size: float = 0.1, random_state: int = 42):
+def split_data(
+    processed_data_path: str,
+    output_dir: str,
+    test_size: float = 0.1,
+    random_state: int = 42,
+):
     print(f"Loading processed data from {processed_data_path}...")
     X = pd.read_parquet(processed_data_path)
 
@@ -32,8 +37,18 @@ def split_data(processed_data_path: str, output_dir: str, test_size: float = 0.1
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--processed_data_path", type=str, required=True, help="Path to processed_data.parquet")
-    parser.add_argument("--output_dir", type=str, default="./outputs/splits", help="Where to save train/val splits")
+    parser.add_argument(
+        "--processed_data_path",
+        type=str,
+        required=True,
+        help="Path to processed_data.parquet",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default="./outputs/splits",
+        help="Where to save train/val splits",
+    )
     parser.add_argument("--test_size", type=float, default=0.1)
     parser.add_argument("--random_state", type=int, default=42)
     args = parser.parse_args()

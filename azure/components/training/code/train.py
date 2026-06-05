@@ -5,8 +5,7 @@ import argparse
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn, optim
 from torch.utils.checkpoint import checkpoint
 from torch.utils.data import DataLoader
 from scipy.spatial.distance import cdist
@@ -77,10 +76,10 @@ class RNADataset(torch.utils.data.Dataset):
         sequence = self.samples[idx]
         t = self.ts[idx] if self.ts else self._sample_t()
         std_dev = self.std_devs[idx]
-        X = get_coordinates(sequence, std_dev, float(t))
-        S = encode_sequence(sequence["resname"])
-        Y = get_output_tensor(sequence)
-        return X, S, t, Y, std_dev
+        coordinates = get_coordinates(sequence, std_dev, float(t))
+        sequence_encoding = encode_sequence(sequence["resname"])
+        target_tensor = get_output_tensor(sequence)
+        return coordinates, sequence_encoding, t, target_tensor, std_dev
 
 class ResBlock(nn.Module):
     def __init__(self, channels: int, kernel_size: int = 3, dilation: int = 1):
@@ -113,8 +112,8 @@ class SinusoidalEncoding(nn.Module):
         freqs = torch.exp(
             -torch.arange(0, half_dim, device=device) * (math.log(10000.0) / (half_dim - 1))
         )
-        args = x.unsqueeze(-1) * freqs
-        return torch.cat([torch.sin(args), torch.cos(args)], dim=-1)
+        angles = x.unsqueeze(-1) * freqs
+        return torch.cat([torch.sin(angles), torch.cos(angles)], dim=-1)
 
 
 class RNAConvModel(nn.Module):
@@ -269,12 +268,22 @@ def main(args):
     val_dataset = RNADataset(val_df, presample=True, min_t=0, max_t=1)
 
     train_loader = DataLoader(
-        train_dataset, batch_size=1, shuffle=True,
-        pin_memory=False, num_workers=2, prefetch_factor=4, persistent_workers=True,
+        train_dataset,
+        batch_size=1,
+        shuffle=True,
+        pin_memory=False,
+        num_workers=2,
+        prefetch_factor=4,
+        persistent_workers=True,
     )
     val_loader = DataLoader(
-        val_dataset, batch_size=1, shuffle=False,
-        pin_memory=False, num_workers=2, prefetch_factor=4, persistent_workers=True,
+        val_dataset,
+        batch_size=1,
+        shuffle=False,
+        pin_memory=False,
+        num_workers=2,
+        prefetch_factor=4,
+        persistent_workers=True,
     )
 
     model = RNAConvModel(
@@ -287,8 +296,14 @@ def main(args):
     ).to(device)
 
     optimizer = optim.AdamW(model.parameters(), lr=0.004, weight_decay=0.01)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
-    loss_fn = lambda p, y, s: nn.L1Loss()(p, y) / s.squeeze()
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=args.epochs,
+        eta_min=1e-6,
+    )
+
+    def loss_fn(prediction, target, scale):
+        return nn.L1Loss()(prediction, target) / scale.squeeze()
     early_stopping = EarlyStopping(patience=40, delta=0, max_run_time=60 * 60 * 9)
 
     start_epoch = 1
@@ -329,6 +344,6 @@ if __name__ == "__main__":
     parser.add_argument("--epochs", type=int, default=350)
     parser.add_argument("--checkpoint_path", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default="./outputs")
-    args = parser.parse_args()
+    cli_args = parser.parse_args()
 
-    main(args)
+    main(cli_args)
