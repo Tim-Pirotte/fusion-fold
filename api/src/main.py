@@ -100,6 +100,7 @@ async def create_folding_session(payload: SessionRequest):
 )
 async def stream_folding(
     session_id: str,
+    account_id: int = fa.Depends(get_current_account),
 ):
     session_str = db.get_session(settings, session_id)
 
@@ -108,10 +109,12 @@ async def stream_folding(
 
     session = SessionRequest.model_validate_json(session_str)
 
-    return fa.responses.StreamingResponse(folding_streamer(session), media_type='text/event-stream')
+    return fa.responses.StreamingResponse(folding_streamer(account_id, session), media_type='text/event-stream')
 
-def folding_streamer(session: SessionRequest) -> typing.Iterator[str]:
+def folding_streamer(account_id: int, session: SessionRequest) -> typing.Iterator[str]:
     try:
+        last_fold = None
+
         for fold in f.folding_iterator(
             session.sequence,
             session.folds_to_generate,
@@ -123,7 +126,11 @@ def folding_streamer(session: SessionRequest) -> typing.Iterator[str]:
         yield 'event: end\ndata: null\n\n'
 
         logger.info('finished folding')
-        db.save_prediction(session.sequence, fold.coords)
+
+        if last_fold is not None:
+            asyncio.create_task(
+                db.save_prediction(settings, account_id, '', session.sequence, last_fold.coords),
+            )
 
     except (GeneratorExit, asyncio.CancelledError):
         logger.info('ending folding early due to client disconnect')
