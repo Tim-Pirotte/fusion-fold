@@ -11,15 +11,19 @@ def split_data(
     random_state: int = 42,
 ):
     print(f"Loading processed data from {processed_data_path}...")
-    X = pd.read_parquet(processed_data_path)
+    processed_data = pd.read_parquet(processed_data_path)
 
-    unique_ids = X["target_id"].unique()
+    unique_ids = processed_data["target_id"].unique()
     print(f"Total sequences: {len(unique_ids)}")
 
-    train_ids, val_ids = train_test_split(unique_ids, test_size=test_size, random_state=random_state)
+    train_ids, val_ids = train_test_split(
+        unique_ids,
+        test_size=test_size,
+        random_state=random_state,
+    )
 
-    train = X[X["target_id"].isin(train_ids)]
-    val = X[X["target_id"].isin(val_ids)]
+    train = processed_data[processed_data["target_id"].isin(train_ids)]
+    val = processed_data[processed_data["target_id"].isin(val_ids)]
 
     print(f"Train sequences: {len(train_ids)}, Val sequences: {len(val_ids)}")
 
@@ -54,3 +58,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     split_data(args.processed_data_path, args.output_dir, args.test_size, args.random_state)
+

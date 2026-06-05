@@ -100,10 +100,19 @@ def save_checkpoint(model, optimizer, scheduler, epoch: int, filepath: str):
 
 def display_save_metrics(run_dir: str, epoch: int, metrics: dict):
     lr = metrics["training"][-1]["learning_rate"]
-    train_loss = metrics["training"][-1]["loss_sum"] / metrics["training"][-1]["sample_count"]
-    val_loss = metrics["validation"][-1]["loss_sum"] / metrics["validation"][-1]["sample_count"]
-    val_tm = metrics["validation"][-1]["tm_score_sum"] / metrics["validation"][-1]["sample_count"]
-    val_inv = metrics["validation"][-1]["invalidity_score_sum"] / metrics["validation"][-1]["sample_count"]
+    train_loss = (
+        metrics["training"][-1]["loss_sum"] / metrics["training"][-1]["sample_count"]
+    )
+    val_loss = (
+        metrics["validation"][-1]["loss_sum"] / metrics["validation"][-1]["sample_count"]
+    )
+    val_tm = (
+        metrics["validation"][-1]["tm_score_sum"] / metrics["validation"][-1]["sample_count"]
+    )
+    val_inv = (
+        metrics["validation"][-1]["invalidity_score_sum"]
+        / metrics["validation"][-1]["sample_count"]
+    )
 
     with open(os.path.join(run_dir, "summary.csv"), "a", encoding="utf-8") as f:
         f.write(f"{epoch},{lr},{train_loss},{val_loss},{val_tm},{val_inv}\n")
