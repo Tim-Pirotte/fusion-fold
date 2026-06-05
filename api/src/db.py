@@ -147,7 +147,7 @@ async def save_prediction(
             account_id=account_id,
             display_name=display_name,
             sequence=sequence,
-            coords=converted_coords,
+            coordinates=converted_coords,
         )
 
         connection.add(prediction)

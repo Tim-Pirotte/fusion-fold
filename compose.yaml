@@ -17,6 +17,9 @@ services:
       - postgres_accounts_su
       - postgres_accounts_siu
       - postgres_accounts_sd
+      - postgres_predictions_s
+      - postgres_predictions_i
+      - postgres_predictions_d
 
   frontend:
     build: ./frontend
