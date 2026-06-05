@@ -14,6 +14,10 @@ services:
       - redis_write
       - redis_read_delete
       - postgres_app_default
+      - postgres_accounts_s
+      - postgres_accounts_su
+      - postgres_accounts_siu
+      - postgres_accounts_sd
 
   frontend:
     build: ./frontend
@@ -64,3 +68,11 @@ secrets:
     file: ./postgres/admin.secret
   postgres_app_default:
     file: ./postgres/app_default.secret
+  postgres_accounts_s:
+    file: ./postgres/accounts_s.secret
+  postgres_accounts_su:
+    file: ./postgres/accounts_su.secret
+  postgres_accounts_siu:
+    file: ./postgres/accounts_siu.secret
+  postgres_accounts_sd:
+    file: ./postgres/accounts_sd.secret
