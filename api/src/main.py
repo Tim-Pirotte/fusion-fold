@@ -213,7 +213,9 @@ class LoginRequest(p.BaseModel):
         min_length=settings.min_mail_len, max_length=settings.max_mail_len,
     )
 
-    password: str = p.Field(min_length=settings.min_password_len, max_length=settings.max_password_len)
+    password: str = p.Field(
+        min_length=settings.min_password_len, max_length=settings.max_password_len,
+    )
 
 @app.post(
     '/v1/accounts/login',
