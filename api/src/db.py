@@ -135,8 +135,22 @@ async def save_prediction(
     sequence: str,
     coords: list[list[float]],
 ):
-    async with get_postgres_connection(settings, 'predictions_si') as connection:
-        pass
+    async with get_postgres_connection(settings, 'predictions_i') as connection:
+        converted_coords = []
+
+        for i, coord in enumerate(coords):
+            converted_coords.append(
+                m.PredictionCoordinate(position=i, x=coord[0], y=coord[1], z=coord[2]),
+            )
+
+        prediction = m.Prediction(
+            account_id=account_id,
+            display_name=display_name,
+            sequence=sequence,
+            coords=converted_coords,
+        )
+
+        connection.add(prediction)
 
 async def create_account(settings: s.Settings, display_name: str, mail: str) -> int | None:
     async with get_postgres_connection(settings, 'accounts_siu') as connection:
