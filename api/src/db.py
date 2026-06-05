@@ -23,7 +23,7 @@ def get_redis_connection(settings: s.Settings, username: str) -> r.Redis:
         return _redis_clients[username]
 
     try:
-        password = Path(f'/run/secrets/redis_{username}').read_text().strip()
+        password = Path(f'/run/secrets/redis_{username}').read_text(encoding='utf-8').strip()
     except FileNotFoundError as e:
         raise DataBaseError(f'No credentials for Redis user {username}') from e
 
@@ -46,12 +46,15 @@ async def get_postgres_connection(settings: s.Settings, username: str) -> AsyncS
         session_maker = _session_makers[username]
     else:
         try:
-            password = Path(f'/run/secrets/postgres_{username}').read_text().strip()
+            password = Path(f'/run/secrets/postgres_{username}').read_text(encoding='utf-8').strip()
         except FileNotFoundError as e:
             raise DataBaseError(f'No credentials for Postgres user {username}') from e
 
         engine = create_async_engine(
-            f'postgresql+asyncpg://{username}:{password}@{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}',
+            f'postgresql+asyncpg://{username}:{password}'
+            f'@{settings.postgres_host}:{settings.postgres_port}'
+            f'/{settings.postgres_db}',
+
             pool_size=settings.postgres_pool_size,
             max_overflow=settings.postgres_max_overflow,
         )
@@ -82,7 +85,11 @@ def handle_redis_errors(func):
 
     return wrapper
 
-def retry_on_error(retries: int, delay_s: float, exceptions: Type[BaseException] | tuple[Type[BaseException], ...]):
+def retry_on_error(
+    retries: int,
+    delay_s: float,
+    exceptions: Type[BaseException] | tuple[Type[BaseException], ...],
+):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -146,7 +153,7 @@ async def create_account(settings: s.Settings, display_name: str, mail: str) -> 
 
         return account.id
 
-async def complete_account(settings: s.Settings, account_id: int, hash: bytes) -> bool:
+async def complete_account(settings: s.Settings, account_id: int, password_hash: bytes) -> bool:
     async with get_postgres_connection(settings, 'app_default') as connection:
         account = await connection.get(m.Account, account_id)
 
@@ -154,9 +161,9 @@ async def complete_account(settings: s.Settings, account_id: int, hash: bytes) -
             return False
 
         if account.status != m.AccountStatus.unverified:
-             return False
+            return False
 
-        account.password_hash = hash
+        account.password_hash = password_hash
         account.status = m.AccountStatus.enabled
 
         return True
@@ -194,7 +201,7 @@ async def change_account_display_name(settings: s.Settings, account_id: int, dis
 
         return result.rowcount == 1
 
-async def reset_password(settings: s.Settings, account_id: int, hash: bytes) -> bool:
+async def reset_password(settings: s.Settings, account_id: int, password_hash: bytes) -> bool:
     async with get_postgres_connection(settings, 'app_default') as connection:
         account = await connection.get(m.Account, account_id)
 
@@ -202,8 +209,8 @@ async def reset_password(settings: s.Settings, account_id: int, hash: bytes) -> 
             return False
 
         if account.status != m.AccountStatus.enabled:
-             return False
+            return False
 
-        account.password_hash = hash
+        account.password_hash = password_hash
 
         return True
