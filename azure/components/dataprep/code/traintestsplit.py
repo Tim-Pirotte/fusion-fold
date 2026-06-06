@@ -58,4 +58,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     split_data(args.processed_data_path, args.output_dir, args.test_size, args.random_state)
-
