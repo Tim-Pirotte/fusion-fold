@@ -168,6 +168,21 @@ async def get_predictions(settings: s.Settings, account_id: int) -> list[m.Predi
 
         return (await connection.execute(stmt)).scalars().all()
 
+async def get_sequence(settings: s.Settings, account_id: int, prediction_id: int) -> str | None:
+    async with get_postgres_connection(settings, 'predictions_s') as connection:
+        account = await connection.get(m.Account, account_id)
+
+        if account is None or account.status != m.AccountStatus.ENABLED:
+            return None
+
+        stmt = (
+            al.select(m.Prediction.rna_sequence)
+                .where(m.Prediction.account_id == account_id)
+                .where(m.Prediction.id == prediction_id)
+        )
+
+        return (await connection.execute(stmt)).scalars().one_or_none()
+
 async def create_account(settings: s.Settings, display_name: str, mail: str) -> int | None:
     async with get_postgres_connection(settings, 'accounts_siu') as connection:
         existing = await connection.execute(al.select(m.Account).where(m.Account.mail == mail))
