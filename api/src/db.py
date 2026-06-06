@@ -135,7 +135,7 @@ async def save_prediction(
     rna_sequence: str,
     coords: list[list[float]],
 ):
-    async with get_postgres_connection(settings, 'predictions_i') as connection:
+    async with get_postgres_connection(settings, 'predictions_id') as connection:
         converted_coords = []
 
         for i, coord in enumerate(coords):
@@ -151,6 +151,18 @@ async def save_prediction(
         )
 
         connection.add(prediction)
+        await connection.flush()
+
+        subquery = (
+            al.select(m.Prediction.id)
+                .where(m.Prediction.account_id == account_id)
+                .order_by(m.Prediction.created_at.desc())
+                .offset(settings.max_predictions_saved)
+        )
+
+        await connection.execute(
+            al.delete(m.Prediction).where(m.Prediction.id.in_(subquery))
+        )
 
 async def is_active_account(connection: AsyncSession, account_id) -> bool:
     account = await connection.get(m.Account, account_id)
@@ -166,7 +178,6 @@ async def get_predictions(settings: s.Settings, account_id: int) -> list[m.Predi
             al.select(m.Prediction)
                 .where(m.Prediction.account_id == account_id)
                 .order_by(m.Prediction.created_at.desc())
-                .limit(settings.max_prediction_results)
         )
 
         return (await connection.execute(stmt)).scalars().all()

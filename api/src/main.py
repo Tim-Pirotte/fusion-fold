@@ -152,7 +152,7 @@ async def folding_streamer(account_id: int, session: SessionRequest) -> typing.A
     summary='Retrieves the prediction history of the user',
     description='Retrieves the'
                 ' display_name, date (created_at) and id'
-                f' of the last (limited to {settings.max_prediction_results}) predictions of the logged in user',
+                f' of the last (limited to {settings.max_predictions_saved}) predictions of the logged in user',
     responses={
         404: {'description': 'The logged in account does not exist or is disabled'}
     }
@@ -194,11 +194,21 @@ async def get_sequence(prediction_id: int, account_id: int = fa.Depends(get_curr
 
     return {'sequence': sequence}
 
+class CoordsResponseCoord(p.BaseModel):
+    position: int
+    x: float
+    y: float
+    z: float
+
+class GetCoordsResponse(p.BaseModel):
+    coords: list[CoordsResponseCoord]
+
 @protected.get(
     '/v1/predictions/{prediction_id}/coords',
     tags=['folding'],
     summary='Retrieves prediction coordinates',
     description='Retrieves the coordinates of a prediction of the logged in user',
+    response_model=GetCoordsResponse,
     responses={
         404: {'description': 'The logged in account does not exist or is disabled'}
     }
