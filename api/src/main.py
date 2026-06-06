@@ -177,6 +177,23 @@ async def get_predictions(account_id: int = fa.Depends(get_current_account)):
         ],
     }
 
+@protected.get(
+    '/v1/predictions/{prediction_id}/sequence',
+    tags=['folding'],
+    summary='Retrieves a prediction sequence',
+    description='Retrieves the sequence of a prediction of the logged in user',
+    responses={
+        404: {'description': 'The prediction does not exist or the logged in account does not exist or is disabled'}
+    }
+)
+async def get_sequence(prediction_id: int, account_id: int = fa.Depends(get_current_account)):
+    sequence = await db.get_sequence(settings, account_id, prediction_id)
+
+    if sequence is None:
+        return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
+
+    return {'sequence': sequence}
+
 class CreateAccountRequest(p.BaseModel):
     display_name: str = p.Field(
         min_length=settings.min_display_name_len, max_length=settings.max_display_name_len,
