@@ -152,11 +152,14 @@ async def save_prediction(
 
         connection.add(prediction)
 
+async def is_active_account(connection: AsyncSession, account_id) -> bool:
+    account = await connection.get(m.Account, account_id)
+
+    return account is not None and account.status == m.AccountStatus.ENABLED
+
 async def get_predictions(settings: s.Settings, account_id: int) -> list[m.Prediction] | None:
     async with get_postgres_connection(settings, 'predictions_s') as connection:
-        account = await connection.get(m.Account, account_id)
-
-        if account is None or account.status != m.AccountStatus.ENABLED:
+        if not await is_active_account(connection, account_id):
             return None
 
         stmt = (
@@ -170,9 +173,7 @@ async def get_predictions(settings: s.Settings, account_id: int) -> list[m.Predi
 
 async def get_sequence(settings: s.Settings, account_id: int, prediction_id: int) -> str | None:
     async with get_postgres_connection(settings, 'predictions_s') as connection:
-        account = await connection.get(m.Account, account_id)
-
-        if account is None or account.status != m.AccountStatus.ENABLED:
+        if not await is_active_account(connection, account_id):
             return None
 
         stmt = (
@@ -182,6 +183,37 @@ async def get_sequence(settings: s.Settings, account_id: int, prediction_id: int
         )
 
         return (await connection.execute(stmt)).scalars().one_or_none()
+
+async def get_coords(settings: s.Settings, account_id: int, prediction_id: int) -> list[dict] | None:
+    async with get_postgres_connection(settings, 'predictions_s') as connection:
+        if not await is_active_account(connection, account_id):
+            return None
+
+        stmt = (
+            al.select(
+                m.PredictionCoordinate.position,
+                m.PredictionCoordinate.x,
+                m.PredictionCoordinate.y,
+                m.PredictionCoordinate.z,
+            )
+            .select_from(m.PredictionCoordinate)
+            .join(m.Prediction)
+            .where(m.Prediction.id == prediction_id)
+            .where(m.Prediction.account_id == account_id)
+            .order_by(m.PredictionCoordinate.position.asc())
+        )
+
+        result = await connection.execute(stmt)
+
+        return [
+            {
+                'position': row.position,
+                'x': row.x,
+                'y': row.y,
+                'z': row.z,
+            }
+            for row in result.all()
+        ]
 
 async def create_account(settings: s.Settings, display_name: str, mail: str) -> int | None:
     async with get_postgres_connection(settings, 'accounts_siu') as connection:

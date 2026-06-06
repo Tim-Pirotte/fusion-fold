@@ -194,6 +194,23 @@ async def get_sequence(prediction_id: int, account_id: int = fa.Depends(get_curr
 
     return {'sequence': sequence}
 
+@protected.get(
+    '/v1/predictions/{prediction_id}/coords',
+    tags=['folding'],
+    summary='Retrieves prediction coordinates',
+    description='Retrieves the coordinates of a prediction of the logged in user',
+    responses={
+        404: {'description': 'The logged in account does not exist or is disabled'}
+    }
+)
+async def get_coords(prediction_id: int, account_id: int = fa.Depends(get_current_account)):
+    coords = await db.get_coords(settings, account_id, prediction_id)
+
+    if coords is None:
+        return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
+
+    return {'coords': coords}
+
 class CreateAccountRequest(p.BaseModel):
     display_name: str = p.Field(
         min_length=settings.min_display_name_len, max_length=settings.max_display_name_len,
