@@ -46,7 +46,7 @@ class Prediction(Base):
     )
 
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    sequence: Mapped[str] = mapped_column(String(1024), nullable=False)
+    rna_sequence: Mapped[str] = mapped_column(String(1024), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
