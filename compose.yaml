@@ -43,6 +43,7 @@ services:
       - postgres-data:/var/lib/postgresql
     secrets:
       - pg_admin
+      - postgres_init_sql
 
 networks:
   redis:
@@ -65,6 +66,8 @@ secrets:
   redis_read_delete:
     file: ./redis/users/read_delete.secret
 
+  postgres_init_sql:
+    file: ./postgres/init.sql
   pg_admin:
     file: ./postgres/users/admin.secret
   postgres_accounts_s:
