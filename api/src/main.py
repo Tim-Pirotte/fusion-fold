@@ -105,13 +105,13 @@ async def stream_folding(
     session_str = db.get_session(settings, session_id)
 
     if not session_str:
-        raise fa.HTTPException(status_code=404, detail='Session not found')
+        return fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
 
     session = SessionRequest.model_validate_json(session_str)
 
     return fa.responses.StreamingResponse(folding_streamer(account_id, session), media_type='text/event-stream')
 
-def folding_streamer(account_id: int, session: SessionRequest) -> typing.Iterator[str]:
+async def folding_streamer(account_id: int, session: SessionRequest) -> typing.AsyncIterator[str]:
     try:
         last_fold = None
 
@@ -121,6 +121,8 @@ def folding_streamer(account_id: int, session: SessionRequest) -> typing.Iterato
             session.steps_per_fold,
             session.return_noise,
         ):
+            last_fold = fold
+
             yield f'data: {json.dumps(fold)}\n\n'
 
         yield 'event: end\ndata: null\n\n'
@@ -128,12 +130,47 @@ def folding_streamer(account_id: int, session: SessionRequest) -> typing.Iterato
         logger.info('finished folding')
 
         if last_fold is not None:
-            asyncio.create_task(
-                db.save_prediction(settings, account_id, '', session.sequence, last_fold.coords),
+            await db.save_prediction(
+                settings,
+                account_id,
+                '',
+                session.sequence,
+                last_fold['coords'],
             )
 
     except (GeneratorExit, asyncio.CancelledError):
         logger.info('ending folding early due to client disconnect')
+
+@protected.get(
+    '/v1/predictions',
+    tags=['folding'],
+    summary='Retrieves the prediction history of the user',
+    description='Retrieves the'
+                ' display_name, date (created_at) and id'
+                ' of the last (limited to 100) predictions of the logged in user',
+    responses={
+        404: {'description': 'The logged in account does not exist or is disabled'}
+    }
+)
+async def get_predictions(account_id: int = fa.Depends(get_current_account)):
+    account = await db.get_predictions(settings, account_id)
+
+    if account is None or account.status != mo.AccountStatus.ENABLED:
+        response = fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
+        remove_auth_cookie(response)
+
+        return response
+
+    return {
+        'predictions': [
+            {
+                'id': prediction.id,
+                'display_name': prediction.display_name,
+                'created_at': prediction.created_at,
+            }
+            for prediction in account.predictions
+        ],
+    }
 
 class CreateAccountRequest(p.BaseModel):
     display_name: str = p.Field(
@@ -216,6 +253,9 @@ def set_auth_cookie(response: fa.Response, account_id: int):
         samesite='lax'
     )
 
+def remove_auth_cookie(response: fa.Response):
+    response.delete_cookie(key='auth_token', httponly=True, samesite='lax')
+
 class LoginRequest(p.BaseModel):
     mail: str = p.Field(
         min_length=settings.min_mail_len, max_length=settings.max_mail_len,
@@ -261,7 +301,7 @@ async def login(request: LoginRequest):
 )
 async def logout():
     response = fa.Response(status_code=fa.status.HTTP_204_NO_CONTENT)
-    response.delete_cookie(key='auth_token', httponly=True, samesite='lax')
+    remove_auth_cookie(response)
 
     return response
 

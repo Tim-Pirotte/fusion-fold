@@ -132,7 +132,7 @@ async def save_prediction(
     settings: s.Settings,
     account_id: int,
     display_name: str,
-    sequence: str,
+    rna_sequence: str,
     coords: list[list[float]],
 ):
     async with get_postgres_connection(settings, 'predictions_i') as connection:
@@ -146,11 +146,21 @@ async def save_prediction(
         prediction = m.Prediction(
             account_id=account_id,
             display_name=display_name,
-            sequence=sequence,
+            rna_sequence=rna_sequence,
             coordinates=converted_coords,
         )
 
         connection.add(prediction)
+
+async def get_predictions(settings: s.Settings, account_id: int) -> m.Account | None:
+    async with get_postgres_connection(settings, 'predictions_s') as connection:
+        stmt = (
+            al.select(m.Account)
+            .options(al.orm.selectinload(m.Account.predictions))
+            .where(m.Account.id == account_id)
+        )
+
+        return (await connection.execute(stmt)).scalar_one_or_none()
 
 async def create_account(settings: s.Settings, display_name: str, mail: str) -> int | None:
     async with get_postgres_connection(settings, 'accounts_siu') as connection:
