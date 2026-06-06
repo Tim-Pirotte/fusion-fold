@@ -158,9 +158,9 @@ async def folding_streamer(account_id: int, session: SessionRequest) -> typing.A
     }
 )
 async def get_predictions(account_id: int = fa.Depends(get_current_account)):
-    account = await db.get_predictions(settings, account_id)
+    predictions = await db.get_predictions(settings, account_id)
 
-    if account is None or account.status != mo.AccountStatus.ENABLED:
+    if predictions is None:
         response = fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
         remove_auth_cookie(response)
 
@@ -173,7 +173,7 @@ async def get_predictions(account_id: int = fa.Depends(get_current_account)):
                 'display_name': prediction.display_name,
                 'created_at': prediction.created_at,
             }
-            for prediction in account.predictions
+            for prediction in predictions
         ],
     }
 
