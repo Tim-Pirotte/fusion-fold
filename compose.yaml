@@ -18,8 +18,7 @@ services:
       - postgres_accounts_siu
       - postgres_accounts_sd
       - postgres_predictions_s
-      - postgres_predictions_i
-      - postgres_predictions_d
+      - postgres_predictions_id
 
   frontend:
     build: ./frontend
@@ -78,7 +77,5 @@ secrets:
     file: ./postgres/users/accounts_sd.secret
   postgres_predictions_s:
     file: ./postgres/users/predictions_s.secret
-  postgres_predictions_i:
-    file: ./postgres/users/predictions_i.secret
-  postgres_predictions_d:
-    file: ./postgres/users/predictions_d.secret
+  postgres_predictions_id:
+    file: ./postgres/users/predictions_id.secret

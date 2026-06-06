@@ -50,7 +50,7 @@ class Settings(ps.BaseSettings):
     min_steps: int = p.Field(ge=1)
     max_steps: int = p.Field()
 
-    max_prediction_results: int = p.Field(ge=1)
+    max_predictions_saved: int = p.Field(ge=1)
 
     @p.model_validator(mode='after')
     def validate_ranges(self) -> 'Settings':
