@@ -114,7 +114,10 @@ async def stream_folding(
 
     session = SessionRequest.model_validate_json(session_str)
 
-    return fa.responses.StreamingResponse(folding_streamer(account_id, session), media_type='text/event-stream')
+    return fa.responses.StreamingResponse(
+        folding_streamer(account_id, session),
+        media_type='text/event-stream',
+    )
 
 async def folding_streamer(account_id: int, session: SessionRequest) -> typing.AsyncIterator[str]:
     try:
@@ -152,7 +155,8 @@ async def folding_streamer(account_id: int, session: SessionRequest) -> typing.A
     summary='Retrieves the prediction history of the user',
     description='Retrieves the'
                 ' display_name, date (created_at) and id'
-                f' of the last (limited to {settings.max_predictions_saved}) predictions of the logged in user',
+                f' of the last (limited to {settings.max_predictions_saved}) predictions'
+                ' of the logged in user',
     responses={
         404: {'description': 'The logged in account does not exist or is disabled'}
     }
@@ -183,7 +187,10 @@ async def get_predictions(account_id: int = fa.Depends(get_current_account)):
     summary='Retrieves a prediction sequence',
     description='Retrieves the sequence of a prediction of the logged in user',
     responses={
-        404: {'description': 'The prediction does not exist or the logged in account does not exist or is disabled'}
+        404: {
+            'description': 'The prediction does not exist'
+                           ' or the logged in account does not exist or is disabled',
+        }
     }
 )
 async def get_sequence(prediction_id: int, account_id: int = fa.Depends(get_current_account)):

@@ -1,6 +1,5 @@
 import enum
 import datetime
-from datetime import datetime as dt
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import String, LargeBinary, Enum, ForeignKey, DateTime, Integer, Double, func

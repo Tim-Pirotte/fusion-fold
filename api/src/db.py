@@ -195,7 +195,11 @@ async def get_sequence(settings: s.Settings, account_id: int, prediction_id: int
 
         return (await connection.execute(stmt)).scalars().one_or_none()
 
-async def get_coords(settings: s.Settings, account_id: int, prediction_id: int) -> list[dict] | None:
+async def get_coords(
+    settings: s.Settings,
+    account_id: int,
+    prediction_id: int,
+) -> list[dict] | None:
     async with get_postgres_connection(settings, 'predictions_s') as connection:
         if not await is_active_account(connection, account_id):
             return None
