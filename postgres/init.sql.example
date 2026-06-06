@@ -11,9 +11,15 @@ CREATE TABLE accounts (
     status        account_status NOT NULL DEFAULT 'unverified'
 );
 
+REVOKE ALL ON accounts FROM PUBLIC;
+
 CREATE USER accounts_s WITH PASSWORD 'example';
 GRANT CONNECT ON DATABASE rna_folding TO accounts_s;
 GRANT SELECT ON accounts TO accounts_s;
+
+CREATE USER accounts_su WITH PASSWORD 'example';
+GRANT CONNECT ON DATABASE rna_folding TO accounts_su;
+GRANT SELECT, UPDATE ON accounts TO accounts_su;
 
 CREATE USER accounts_siu WITH PASSWORD 'example';
 GRANT CONNECT ON DATABASE rna_folding TO accounts_siu;
@@ -23,3 +29,39 @@ GRANT USAGE, SELECT ON SEQUENCE accounts_id_seq TO accounts_siu;
 CREATE USER accounts_sd WITH PASSWORD 'example';
 GRANT CONNECT ON DATABASE rna_folding TO accounts_sd;
 GRANT SELECT, DELETE ON accounts TO accounts_sd;
+
+CREATE TABLE predictions (
+    id            SERIAL PRIMARY KEY,
+    account_id    INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    display_name  VARCHAR(255) NOT NULL,
+    rna_sequence  VARCHAR(1024) NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+REVOKE ALL ON predictions FROM PUBLIC;
+
+CREATE TABLE prediction_coordinates (
+    prediction_id INTEGER NOT NULL REFERENCES predictions(id) ON DELETE CASCADE,
+    position      INTEGER NOT NULL,
+    x             DOUBLE PRECISION NOT NULL,
+    y             DOUBLE PRECISION NOT NULL,
+    z             DOUBLE PRECISION NOT NULL,
+
+    PRIMARY KEY (prediction_id, position)
+);
+
+REVOKE ALL ON prediction_coordinates FROM PUBLIC;
+
+CREATE USER predictions_s WITH PASSWORD 'example';
+GRANT CONNECT ON DATABASE rna_folding TO predictions_s;
+GRANT SELECT ON predictions, prediction_coordinates TO predictions_s;
+GRANT SELECT ON accounts TO predictions_s;
+
+CREATE USER predictions_i WITH PASSWORD 'example';
+GRANT CONNECT ON DATABASE rna_folding TO predictions_i;
+GRANT SELECT, INSERT ON predictions, prediction_coordinates TO predictions_i;
+GRANT USAGE, SELECT ON SEQUENCE predictions_id_seq TO predictions_i;
+
+CREATE USER predictions_d WITH PASSWORD 'example';
+GRANT CONNECT ON DATABASE rna_folding TO predictions_d;
+GRANT DELETE ON predictions, prediction_coordinates TO predictions_d;
