@@ -66,6 +66,11 @@ async def database_error_handler(*_):
     raise fa.HTTPException(status_code=503, detail='Database service unavailable')
 
 class SessionRequest(p.BaseModel):
+    display_name: str = p.Field(
+        min_length=settings.min_seq_display_name_len,
+        max_length=settings.max_seq_display_name_len,
+    )
+
     sequence: str = p.Field(
         min_length=settings.min_seq_len,
         max_length=settings.max_seq_len,
@@ -133,7 +138,7 @@ async def folding_streamer(account_id: int, session: SessionRequest) -> typing.A
             await db.save_prediction(
                 settings,
                 account_id,
-                '',
+                session.display_name,
                 session.sequence,
                 last_fold['coords'],
             )
@@ -147,7 +152,7 @@ async def folding_streamer(account_id: int, session: SessionRequest) -> typing.A
     summary='Retrieves the prediction history of the user',
     description='Retrieves the'
                 ' display_name, date (created_at) and id'
-                ' of the last (limited to 100) predictions of the logged in user',
+                f' of the last (limited to {settings.max_prediction_results}) predictions of the logged in user',
     responses={
         404: {'description': 'The logged in account does not exist or is disabled'}
     }

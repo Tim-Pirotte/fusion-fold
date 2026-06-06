@@ -38,14 +38,19 @@ class Settings(ps.BaseSettings):
 
     session_ttl: int = p.Field(ge=0)
 
-    min_seq_len: int = p.Field(ge=1)
-    max_seq_len: int
+    min_seq_display_name_len: int = p.Field(ge=1, le=255)
+    max_seq_display_name_len: int = p.Field(le=255)
+
+    min_seq_len: int = p.Field(ge=1, le=1024)
+    max_seq_len: int = p.Field(le=1024)
 
     min_folds: int = p.Field(ge=1)
     max_folds: int = p.Field()
 
     min_steps: int = p.Field(ge=1)
     max_steps: int = p.Field()
+
+    max_prediction_results: int = p.Field(ge=1)
 
     @p.model_validator(mode='after')
     def validate_ranges(self) -> 'Settings':
@@ -54,6 +59,7 @@ class Settings(ps.BaseSettings):
             'mail_len',
             'display_name_len',
             'display_name_len',
+            'seq_display_name_len',
             'seq_len',
             'folds',
             'steps',
