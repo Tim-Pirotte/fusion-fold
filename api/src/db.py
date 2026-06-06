@@ -152,15 +152,21 @@ async def save_prediction(
 
         connection.add(prediction)
 
-async def get_predictions(settings: s.Settings, account_id: int) -> m.Account | None:
+async def get_predictions(settings: s.Settings, account_id: int) -> list[m.Prediction] | None:
     async with get_postgres_connection(settings, 'predictions_s') as connection:
+        account = await connection.get(m.Account, account_id)
+
+        if account is None or account.status != m.AccountStatus.ENABLED:
+            return None
+
         stmt = (
-            al.select(m.Account)
-            .options(al.orm.selectinload(m.Account.predictions))
-            .where(m.Account.id == account_id)
+            al.select(m.Prediction)
+                .where(m.Prediction.account_id == account_id)
+                .order_by(m.Prediction.created_at.desc())
+                .limit(settings.max_prediction_results)
         )
 
-        return (await connection.execute(stmt)).scalar_one_or_none()
+        return (await connection.execute(stmt)).scalars().all()
 
 async def create_account(settings: s.Settings, display_name: str, mail: str) -> int | None:
     async with get_postgres_connection(settings, 'accounts_siu') as connection:
