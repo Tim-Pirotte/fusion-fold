@@ -314,7 +314,7 @@ def set_auth_cookie(response: fa.Response, account_id: int):
         value='',
         httponly=False,
         secure=False,
-        samesie='lax'
+        samesite='lax'
     )
 
 class LoginRequest(p.BaseModel):
@@ -363,8 +363,8 @@ async def login(request: LoginRequest):
 async def logout():
     response = fa.Response(status_code=fa.status.HTTP_204_NO_CONTENT)
 
-    response.delete_cookie(key='auth_token', httponly=True, samesite='lax')
-    response.delete_cookie(key='logged_in', httponly=False, samesite='lax')
+    response.delete_cookie(key='auth_token')
+    response.delete_cookie(key='logged_in')
 
     return response
 
