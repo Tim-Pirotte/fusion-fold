@@ -113,11 +113,21 @@ async function generateFolds(e, objectManager) {
 
     showOverview();
 
-    const sequence = document.getElementById("sequence").value.replaceAll(" ", "").toUpperCase();
+    const displayName = document.getElementById("name").value;
+    const sequence = document.getElementById("sequence").value
+        .replaceAll(" ", "").toUpperCase();
+
     const folds = document.getElementById("folds").value;
     const steps = document.getElementById("steps").value;
     const returnNoise = document.getElementById("return-noise").value === "true";
-    const sessionId = await getFoldingSession(sequence, folds, steps, returnNoise);
+
+    const sessionId = await getFoldingSession(
+        displayName,
+        sequence,
+        folds,
+        steps,
+        returnNoise,
+    );
 
     if (sessionId === null) {
         hideOverview();
@@ -131,7 +141,10 @@ async function generateFolds(e, objectManager) {
     let lastStrand = null;
     let lastDistanceMap = null;
 
-    const eventSource = new EventSource(`${API}/v1/folding-sessions/${sessionId}`);
+    const eventSource = new EventSource(
+        `${API}/v1/folding-sessions/${sessionId}`,
+        { withCredentials: true },
+    );
 
     eventSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
@@ -220,7 +233,7 @@ function hideOverview() {
     $overview.dispatchEvent(new CustomEvent("folding-session-ended"));
 }
 
-async function getFoldingSession(sequence, folds, steps, returnNoise) {
+async function getFoldingSession(displayName, sequence, folds, steps, returnNoise) {
     const res = await fetch(
         `${API}/v1/folding-sessions/`,
         {
@@ -228,7 +241,9 @@ async function getFoldingSession(sequence, folds, steps, returnNoise) {
             headers: {
                 "Content-Type": "application/json"
             },
+            credentials: "include",
             body: JSON.stringify({
+                display_name: displayName,
                 sequence: sequence,
                 folds_to_generate: folds,
                 steps_per_fold: steps,
