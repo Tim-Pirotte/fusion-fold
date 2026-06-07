@@ -270,7 +270,7 @@ class CompleteAccountRequest(p.BaseModel):
     responses={
         400: {'description': 'Invalid token'},
         410: {'description': 'Token expired'},
-        422: {'description': 'Account does not exist or is not unverified'},
+        403: {'description': 'Account does not exist or is not unverified'},
     },
 )
 async def complete_account(token: str, request: CompleteAccountRequest):
@@ -292,7 +292,7 @@ async def complete_account(token: str, request: CompleteAccountRequest):
     hashed_password = a.hash_password(settings, request.password)
 
     if not await db.complete_account(settings, account_id, hashed_password):
-        return fa.Response(status_code=fa.status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return fa.Response(status_code=fa.status.HTTP_403_FORBIDDEN)
 
     res = fa.Response(status_code=fa.status.HTTP_204_NO_CONTENT)
     set_auth_cookie(res, account_id)
