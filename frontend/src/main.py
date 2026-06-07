@@ -14,5 +14,9 @@ def login():
 def verify_account(**_):
     return fl.render_template('verify_account.html')
 
+@app.route('/reset-password')
+def reset_password():
+    return fl.render_template('reset_password.html')
+
 if __name__ == '__main__':
     app.run(debug=False, threaded=True)
