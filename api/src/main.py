@@ -104,6 +104,7 @@ async def create_folding_session(payload: SessionRequest):
     description='Streams a submitted folding session as server-sent events',
 )
 async def stream_folding(
+    request: fa.Request,
     session_id: str,
     account_id: int = fa.Depends(get_current_account),
 ):
@@ -115,39 +116,44 @@ async def stream_folding(
     session = SessionRequest.model_validate_json(session_str)
 
     return fa.responses.StreamingResponse(
-        folding_streamer(account_id, session),
+        folding_streamer(request, account_id, session),
         media_type='text/event-stream',
     )
 
-async def folding_streamer(account_id: int, session: SessionRequest) -> typing.AsyncIterator[str]:
-    try:
-        last_fold = None
+async def folding_streamer(
+    request: fa.Request,
+    account_id: int,
+    session: SessionRequest,
+) -> typing.AsyncIterator[str]:
+    last_fold = None
 
-        for fold in f.folding_iterator(
+    for fold in f.folding_iterator(
+        session.sequence,
+        session.folds_to_generate,
+        session.steps_per_fold,
+        session.return_noise,
+    ):
+        if await request.is_disconnected():
+            logger.info('ending folding early due to client disconnect')
+
+            return
+
+        last_fold = fold
+
+        yield f'data: {json.dumps(fold)}\n\n'
+
+    yield 'event: end\ndata: null\n\n'
+
+    logger.info('finished folding')
+
+    if last_fold is not None:
+        await db.save_prediction(
+            settings,
+            account_id,
+            session.display_name,
             session.sequence,
-            session.folds_to_generate,
-            session.steps_per_fold,
-            session.return_noise,
-        ):
-            last_fold = fold
-
-            yield f'data: {json.dumps(fold)}\n\n'
-
-        yield 'event: end\ndata: null\n\n'
-
-        logger.info('finished folding')
-
-        if last_fold is not None:
-            await db.save_prediction(
-                settings,
-                account_id,
-                session.display_name,
-                session.sequence,
-                last_fold['coords'],
-            )
-
-    except (GeneratorExit, asyncio.CancelledError):
-        logger.info('ending folding early due to client disconnect')
+            last_fold['coords'],
+        )
 
 @protected.get(
     '/v1/predictions',
