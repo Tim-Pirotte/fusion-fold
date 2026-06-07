@@ -311,7 +311,6 @@ def set_auth_cookie(response: fa.Response, account_id: int):
     # For the client to check if it is logged in
     response.set_cookie(
         key='logged_in',
-        value='',
         httponly=False,
         secure=False,
         samesite='lax'
