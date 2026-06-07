@@ -55,6 +55,37 @@ async function login(e) {
     }
 }
 
-function register(e) {
+async function register(e) {
     e.preventDefault();
+
+    const mail = document.getElementById("email").value;
+    const displayName = document.getElementById("display-name").value;
+
+    const res = await fetch(
+        `${API}/v1/accounts`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                mail: mail,
+                display_name: displayName,
+            }),
+        },
+    );
+
+    if (!res.ok) {
+        if (res.status === 403) {
+            alert("An account is already registered for this e-mail");
+        } else {
+            alert("Something unknown went wrong");
+        }
+    } else {
+        alert(
+            "Account successfully created. " +
+            "Please check your e-mail for verification.",
+        )
+    }
 }
