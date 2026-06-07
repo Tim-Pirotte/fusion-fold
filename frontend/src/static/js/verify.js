@@ -24,7 +24,7 @@ function completeAccount(e) {
             },
             body: JSON.stringify({
                 password,
-            })
+            }),
         },
     );
 }
