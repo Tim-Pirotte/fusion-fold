@@ -45,7 +45,11 @@ async function login(e) {
     );
 
     if (!res.ok) {
-        alert("Incorrect e-mail and/or password");
+        if (res.status === 400) {
+            alert("Incorrect e-mail and/or password");
+        } else {
+            alert("Something unknown went wrong");
+        }
     } else {
         location.href = "/";
     }
