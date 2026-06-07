@@ -6,6 +6,10 @@ app = fl.Flask(__name__)
 def index():
     return fl.render_template('index.html')
 
+@app.route('/login')
+def login():
+    return fl.render_template('login.html')
+
 @app.route('/verify-account/<string:token>')
 def verify_account(**_):
     return fl.render_template('verify_account.html')
