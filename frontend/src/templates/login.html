@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Predict the positions of C1' atoms of RNA sequences">
+    <meta name="keywords" content="RNA, RNA folding, diffusion">
+    <meta name="author" content="Pirotte Tim, Windels Maxim">
+    <title>Login</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
+</head>
+<body>
+    <h1>Login Or Register</h1>
+    <form id="toggle-form">
+        <input type="radio" name="toggle" id="login-toggle" checked>
+        <label for="login-toggle">Login</label>
+        <input type="radio" name="toggle" id="register-toggle">
+        <label for="register-toggle">Register</label>
+    </form>
+    <form id="login">
+        <label for="mail">e-mail</label>
+        <input type="email" id="mail" maxlength="255">
+        <label for="password">Password</label>
+        <input type="password" id="password" minlength="8" maxlength="32">
+        <button type="submit">Login</button>
+    </form>
+    <form id="register">
+        <label for="mail">e-mail</label>
+        <input type="email" id="mail" maxlength="255">
+        <label for="display-name">Display name</label>
+        <input type="text" id="display-name" minlength="1" maxlength="255">
+        <button type="submit">Register</button>
+    </form>
+</body>
