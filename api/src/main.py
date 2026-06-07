@@ -166,7 +166,6 @@ async def get_predictions(account_id: int = fa.Depends(get_current_account)):
 
     if predictions is None:
         response = fa.Response(status_code=fa.status.HTTP_404_NOT_FOUND)
-        remove_auth_cookie(response)
 
         return response
 
@@ -309,8 +308,14 @@ def set_auth_cookie(response: fa.Response, account_id: int):
         samesite='lax'
     )
 
-def remove_auth_cookie(response: fa.Response):
-    response.delete_cookie(key='auth_token', httponly=True, samesite='lax')
+    # For the client to check if it is logged in
+    response.set_cookie(
+        key='logged_in',
+        value='',
+        httponly=False,
+        secure=False,
+        samesie='lax'
+    )
 
 class LoginRequest(p.BaseModel):
     mail: str = p.Field(
@@ -357,7 +362,9 @@ async def login(request: LoginRequest):
 )
 async def logout():
     response = fa.Response(status_code=fa.status.HTTP_204_NO_CONTENT)
-    remove_auth_cookie(response)
+
+    response.delete_cookie(key='auth_token', httponly=True, samesite='lax')
+    response.delete_cookie(key='logged_in', httponly=False, samesite='lax')
 
     return response
 
