@@ -36,6 +36,7 @@ async function login(e) {
             headers: {
                 "Content-Type": "application/json"
             },
+            credentials: "include",
             body: JSON.stringify({
                 mail: mail,
                 password: password,
