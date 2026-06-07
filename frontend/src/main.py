@@ -18,5 +18,9 @@ def verify_account(**_):
 def reset_password():
     return fl.render_template('reset_password.html')
 
+@app.route('/reset-password/<string:token>')
+def complete_password_reset(**_):
+    return fl.render_template('complete_password_reset.html')
+
 if __name__ == '__main__':
     app.run(debug=False, threaded=True)
