@@ -1,4 +1,5 @@
-from typing import TypedDict, Iterator
+from typing import TypedDict, AsyncIterator
+import asyncio
 import math
 import time
 import os
@@ -58,12 +59,12 @@ class FoldingStep(TypedDict):
     step: int
     coords: list[list[float]]
 
-def folding_iterator(
+async def folding_iterator(
     sequence: str,
     folds_to_generate: int,
     steps_per_fold: int,
     return_noise: bool,
-) -> Iterator[FoldingStep]:
+) -> AsyncIterator[FoldingStep]:
     model = get_model()
 
     num_nucleotides = len(sequence)
@@ -111,7 +112,7 @@ def folding_iterator(
 
             duration = time.perf_counter() - start_time
 
-            time.sleep(max(0, 1.6 - duration))
+            await asyncio.sleep(max(0, 1.6 - duration))
 
 class SinusoidalEncoding(torch.nn.Module):
     def __init__(self, embedding_dim: int):

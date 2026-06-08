@@ -127,7 +127,7 @@ async def folding_streamer(
 ) -> typing.AsyncIterator[str]:
     last_fold = None
 
-    for fold in f.folding_iterator(
+    async for fold in f.folding_iterator(
         session.sequence,
         session.folds_to_generate,
         session.steps_per_fold,
