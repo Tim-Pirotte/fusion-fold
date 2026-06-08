@@ -35,8 +35,13 @@
         </section>
     </main>
     <section>
-        <h1>RNA Folding</h1>
-        <button id="show-account">loading...</button>
+        <div id="header">
+            <h1>RNA Folding</h1>
+            <button id="show-account">
+                <img src="{{ url_for('static', filename='images/account.svg') }}" alt="Account" />
+                <span id="display-name">loading...</span>
+            </button>
+        </div>
         <form id="folding-form">
             <fieldset>
                 <div id="sequence-header">

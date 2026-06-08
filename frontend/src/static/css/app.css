@@ -25,7 +25,7 @@ body {
         @media (max-aspect-ratio: 1/1) {
             flex: 1 1 40vh;
         }
-        
+
         > section {
             position: absolute;
             width: 10rem;
@@ -47,7 +47,7 @@ body {
                     font-size: small;
                 }
             }
-            
+
             > #objects {
                 display: flex;
                 flex-direction: column;
@@ -155,14 +155,44 @@ body {
             padding: 0.5rem;
         }
 
-        > h1 {
-            text-align: center;
+        > #header {
+            display: flex;
+            align-items: center;
             margin-bottom: 1rem;
-            font-size: larger;
+            justify-content: space-between;
 
-            @media (max-aspect-ratio: 1/1) {
-                margin-bottom: 0.5rem;
-                font-size: large;
+            > h1 {
+                text-align: center;
+                font-size: larger;
+
+                @media (max-aspect-ratio: 1/1) {
+                    font-size: large;
+                }
+            }
+
+            > button {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.4rem;
+                border: none;
+                background-color: #ff9800;
+                box-shadow: 0.25rem 0.25rem 0.0625rem -0.0625rem rgba(0,0,0,0.15);
+                color: white;
+                font-weight: bold;
+                border-radius: 0.25rem;
+                transition: background-color 0.3s ease-in-out, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+                @media (max-aspect-ratio: 1/1) {
+                    padding: 0.4rem;
+                    font-size: small;
+                }
+
+                &:hover {
+                    background-color: #ffa114;
+                    transform: scale(1.05);
+                    cursor: pointer;
+                }
             }
         }
 
@@ -191,7 +221,7 @@ body {
                     display: flex;
                     align-items: center;
                     gap: 0.25rem;
-                    
+
                     > .upload-container {
                         &:hover {
                             transform: scale(1.05);
@@ -224,7 +254,7 @@ body {
                         background: none;
                         border: none;
                         padding: 0;
-                        
+
                         > img {
                             display: block;
                             width: 1.25rem;
@@ -314,7 +344,7 @@ body {
                 gap: 1rem;
                 align-items: center;
                 margin-bottom: 1rem;
-                
+
                 > button {
                     display: block;
                     padding: 0.5rem;
@@ -392,7 +422,7 @@ body {
                             height: 13rem;
                             image-rendering: pixelated;
                             box-shadow: 0.25rem 0.25rem 0.0625rem -0.0625rem rgba(0,0,0,0.15);
-                        
+
                             &.active {
                                 display: block;
                             }
@@ -447,13 +477,13 @@ body {
                     height: 100%;
                     background-color: #ffa114;
                     background-image: linear-gradient(
-                        45deg, 
-                        rgba(255, 255, 255, 0.2) 25%, 
-                        transparent 25%, 
-                        transparent 50%, 
-                        rgba(255, 255, 255, 0.2) 50%, 
-                        rgba(255, 255, 255, 0.2) 75%, 
-                        transparent 75%, 
+                        45deg,
+                        rgba(255, 255, 255, 0.2) 25%,
+                        transparent 25%,
+                        transparent 50%,
+                        rgba(255, 255, 255, 0.2) 50%,
+                        rgba(255, 255, 255, 0.2) 75%,
+                        transparent 75%,
                         transparent
                     );
                     background-size: 3rem 3rem;

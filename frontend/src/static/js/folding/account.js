@@ -31,7 +31,7 @@ async function loadProfile() {
 
     const data = await res.json();
 
-    document.getElementById("show-account").textContent = data["display_name"];
+    document.getElementById("display-name").innerText = data["display_name"];
 }
 
 export { loadProfile };
