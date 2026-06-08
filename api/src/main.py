@@ -378,7 +378,7 @@ class GetAccountResponse(p.BaseModel):
     mail: str
 
 @protected.get(
-    '/v1/accounts/',
+    '/v1/accounts',
     response_model=GetAccountResponse,
     tags=['accounts'],
     summary='Retrieves account data of the current session',
@@ -399,7 +399,7 @@ async def get_account(account_id: int = fa.Depends(get_current_account)):
     }
 
 @protected.delete(
-    '/v1/accounts/',
+    '/v1/accounts',
     tags=['accounts'],
     summary='Deletes the account of the current session',
     description='Deletes the account data of the currently logged in user and logs the user out',
