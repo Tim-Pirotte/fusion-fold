@@ -73,45 +73,45 @@ def folding_iterator(
         coords = torch.randn((1, num_nucleotides, 3))
         timesteps = torch.linspace(1.0, 0.0, steps_per_fold + 1)
 
-        with torch.no_grad():
-            for step in range(steps_per_fold):
-                start_time = time.perf_counter()
+        for step in range(steps_per_fold):
+            start_time = time.perf_counter()
 
-                t_curr = timesteps[step]
-                t_next = timesteps[step + 1]
+            t_curr = timesteps[step]
+            t_next = timesteps[step + 1]
 
+            with torch.no_grad():
                 pred = model(coords, seq, t_curr.unsqueeze(0))
                 pred_np = pred.squeeze().numpy()
 
-                coords_np = distances_to_coords(pred_np)
-                x0_coords = torch.from_numpy(coords_np).float()[None, :, :]
-                x0_coords -= x0_coords.mean(dim=1, keepdim=True)
+            coords_np = distances_to_coords(pred_np)
+            x0_coords = torch.from_numpy(coords_np).float()[None, :, :]
+            x0_coords -= x0_coords.mean(dim=1, keepdim=True)
 
-                mask = ~np.eye(pred_np.shape[0], dtype=bool)
-                std_dev = pred_np[mask].std() + 1e-6
+            mask = ~np.eye(pred_np.shape[0], dtype=bool)
+            std_dev = pred_np[mask].std() + 1e-6
 
-                coords_to_return = x0_coords
+            coords_to_return = x0_coords
 
-                if t_next > 0:
-                    x0_coords_scaled = x0_coords / std_dev
-                    noise = torch.randn_like(x0_coords_scaled)
+            if t_next > 0:
+                x0_coords_scaled = x0_coords / std_dev
+                noise = torch.randn_like(x0_coords_scaled)
 
-                    coords = torch.sqrt(1 - t_next) * x0_coords_scaled + torch.sqrt(t_next) * noise
+                coords = torch.sqrt(1 - t_next) * x0_coords_scaled + torch.sqrt(t_next) * noise
 
-                    if return_noise:
-                        coords_to_return = coords * std_dev
-                else:
-                    coords = x0_coords
+                if return_noise:
+                    coords_to_return = coords * std_dev
+            else:
+                coords = x0_coords
 
-                yield {
-                    'fold': fold,
-                    'step': step,
-                    'coords': coords_to_return.squeeze(0).tolist()
-                }
+            yield {
+                'fold': fold,
+                'step': step,
+                'coords': coords_to_return.squeeze(0).tolist()
+            }
 
-                duration = time.perf_counter() - start_time
+            duration = time.perf_counter() - start_time
 
-                time.sleep(max(0, 1.6 - duration))
+            time.sleep(max(0, 1.6 - duration))
 
 class SinusoidalEncoding(torch.nn.Module):
     def __init__(self, embedding_dim: int):

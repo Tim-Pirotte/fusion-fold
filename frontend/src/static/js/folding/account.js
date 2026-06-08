@@ -1,6 +1,6 @@
 import { API } from "../config.js";
 
-async function init() {
+async function init(sidePanel) {
     const loggedIn = document.cookie
         .split("; ")
         .some(c => c.startsWith("logged_in="));
@@ -9,20 +9,31 @@ async function init() {
         location.href = "/login";
     }
 
+    sidePanel.addPanel("account-dashboard");
+
     document.getElementById("show-account")
-        .addEventListener("click", toggleDashBoard);
+        .addEventListener("click", (e) => toggleDashBoard(e, sidePanel));
 
     await loadProfile();
 }
 
 async function loadProfile() {
-    const res = await fetch(
-        `${API}/v1/accounts`,
-        {
-            method: "GET",
-            credentials: "include",
-        },
-    );
+    let res;
+
+    try {
+        res = await fetch(
+            `${API}/v1/accounts`,
+            {
+                method: "GET",
+                credentials: "include",
+            },
+        );
+    } catch (e) {
+        console.error(e);
+        document.getElementById("display-name").innerText = "Error";
+
+        return;
+    }
 
     if (!res.ok) {
         if (res.status === 404) {
@@ -41,17 +52,13 @@ async function loadProfile() {
     document.getElementById("display-name").innerText = data["display_name"];
 }
 
-function toggleDashBoard(e) {
+function toggleDashBoard(e, sidePanel) {
     const $button = e.currentTarget;
 
     if ($button.hasAttribute("data-show-account")) {
-        document.getElementById("account-dashboard")
-            .style.display = "flex";
-
-
+        sidePanel.showPanel("account-dashboard");
     } else {
-        document.getElementById("account-dashboard")
-            .style.display = "";
+        sidePanel.back();
     }
 
     $button.toggleAttribute("data-show-account")

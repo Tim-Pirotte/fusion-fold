@@ -8,6 +8,10 @@
     to { background-position: 3rem 0; }
 }
 
+.hide {
+    display: none !important;
+}
+
 body {
     display: flex;
     font-family: defaultFont;
@@ -335,7 +339,7 @@ body {
         }
 
         > #folding-overview {
-            display: none;
+            display: flex;
             flex-direction: column;
             height: 100%;
 
@@ -499,7 +503,7 @@ body {
         }
 
         > #account-dashboard {
-            display: none;
+            display: flex;
         }
     }
 }
