@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       reason:
-        description: 'Reden voor deze run (bijv. Nieuwe data, Code update)'
+        description: 'Reason for this run (e.g. New data, Code update)'
         required: false
-        default: 'Manuele trigger via GitHub'
+        default: 'Manual trigger via GitHub'
       epochs:
-        description: 'Aantal epochs'
+        description: 'Number of epochs'
         required: false
         default: '1'
 
@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Print reason for run
-        run: echo "Run gestart vanwege ${{ github.event.inputs.reason }}"
+        run: echo "Run started because ${{ github.event.inputs.reason }}"
 
       - name: Azure Login
         uses: azure/login@v2
