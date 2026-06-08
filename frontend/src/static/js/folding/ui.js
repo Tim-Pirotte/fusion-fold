@@ -148,8 +148,10 @@ async function generateFolds(e, objectManager, sidePanel) {
         return;
     }
 
-    const reference = m.createStrand(objectManager, sequence, -1, document.getElementById("name").value);
-    reference.addFrame(window.groundTruthCoords);
+    if (window.groundTruthCoords) {
+        const reference = m.createStrand(objectManager, sequence, -1, document.getElementById("name").value);
+        reference.addFrame(window.groundTruthCoords);
+    }
 
     let lastStrand = null;
     let lastDistanceMap = null;
