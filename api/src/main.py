@@ -142,10 +142,6 @@ async def folding_streamer(
 
         yield f'data: {json.dumps(fold)}\n\n'
 
-    yield 'event: end\ndata: null\n\n'
-
-    logger.info('finished folding')
-
     if last_fold is not None:
         await db.save_prediction(
             settings,
@@ -154,6 +150,10 @@ async def folding_streamer(
             session.sequence,
             last_fold['coords'],
         )
+
+    yield 'event: end\ndata: null\n\n'
+
+    logger.info('finished folding')
 
 class PredictionResponse(p.BaseModel):
     id: int
