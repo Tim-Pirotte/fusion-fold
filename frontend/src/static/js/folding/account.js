@@ -10,8 +10,28 @@ async function loadProfile() {
     }
 
     const res = await fetch(
-        `${API}/accounts/`,
+        `${API}/v1/accounts`,
+        {
+            method: "GET",
+            credentials: "include",
+        },
     );
+
+    if (!res.ok) {
+        if (res.status === 404) {
+            alert("The logged in account does not exist anymore");
+            return;
+        } else if (res.status === 401) {
+            location.href = "/login";
+        } else {
+            alert("Something went wrong while retrieving account data");
+            return;
+        }
+    }
+
+    const data = await res.json();
+
+    document.getElementById("show-account").textContent = data["display_name"];
 }
 
 export { loadProfile };
