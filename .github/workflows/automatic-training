@@ -1,0 +1,35 @@
+name: Azure ML Automatic Training
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reden voor deze run (bijv. Nieuwe data, Code update)'
+        required: false
+        default: 'Manuele trigger via GitHub'
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Print reason for run
+        run: echo "Run gestart vanwege: ${{ github.event.inputs.reason }}"
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install Azure ML CLI extension
+        run: az extension add -n ml -y
+
+      - name: Submit Azure ML Pipeline
+        run: |
+          az ml job create \
+            --file azure/pipeline.yaml \
+            --workspace-name projectmachinelearning \
+            --resource-group azure-project
