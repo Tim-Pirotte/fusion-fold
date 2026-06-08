@@ -1,4 +1,4 @@
-name: Azure ML Automatic Training
+name: Azure ML Training Pipeline
 
 on:
   workflow_dispatch:
@@ -7,20 +7,24 @@ on:
         description: 'Reden voor deze run (bijv. Nieuwe data, Code update)'
         required: false
         default: 'Manuele trigger via GitHub'
+      epochs:
+        description: 'Aantal epochs'
+        required: false
+        default: '1'
 
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Print reason for run
-        run: echo "Run gestart vanwege: ${{ github.event.inputs.reason }}"
+        run: echo "Run gestart vanwege ${{ github.event.inputs.reason }}"
 
       - name: Azure Login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -32,4 +36,5 @@ jobs:
           az ml job create \
             --file azure/pipeline.yaml \
             --workspace-name projectmachinelearning \
-            --resource-group azure-project
+            --resource-group azure-project \
+            --set inputs.epochs=${{ github.event.inputs.epochs }}
