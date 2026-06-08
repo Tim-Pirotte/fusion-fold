@@ -235,7 +235,7 @@ function hideOverview() {
 
 async function getFoldingSession(displayName, sequence, folds, steps, returnNoise) {
     const res = await fetch(
-        `${API}/v1/folding-sessions/`,
+        `${API}/v1/folding-sessions`,
         {
             method: "POST",
             headers: {
