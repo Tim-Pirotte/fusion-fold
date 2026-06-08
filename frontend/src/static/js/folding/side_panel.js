@@ -34,8 +34,13 @@ const SidePanel = {
     back() {
         if (this.panelStack.length >= 2) {
             this.panelStack.pop();
-            this.showPanel(this.panelStack.at(-1));
+            // Pop again since showPanel will add it to the stack again
+            this.showPanel(this.panelStack.pop());
         }
+    },
+
+    getCurrentPanel() {
+        return this.panelStack.at(-1);
     }
 }
 
