@@ -6,14 +6,27 @@ import { API } from "../config.js";
 
 const MIN_SEQUENCE_LENGTH = 2;
 
-function init(objectManager) {
+function init(objectManager, sidePanel) {
+    sidePanel.addPanel("folding-form");
+    sidePanel.showPanel("folding-form");
+    sidePanel.addPanel("folding-overview");
+
     synchronizeInputs();
 
-    document.getElementById("sequence").addEventListener("input", validateSequence);
-    document.getElementById("rna-upload").addEventListener("change", handleRnaUpload)
-    document.getElementById("restore").addEventListener("click", restoreDefaultValues);
-    document.getElementById("folding-form").addEventListener("submit", (e) => generateFolds(e, objectManager));
-    document.getElementById("end-folding-session").addEventListener("click", hideOverview);
+    document.getElementById("sequence")
+        .addEventListener("input", validateSequence);
+
+    document.getElementById("rna-upload")
+        .addEventListener("change", handleRnaUpload);
+
+    document.getElementById("restore")
+        .addEventListener("click", restoreDefaultValues);
+
+    document.getElementById("folding-form")
+        .addEventListener("submit", (e) => generateFolds(e, objectManager, sidePanel));
+
+    document.getElementById("end-folding-session")
+        .addEventListener("click", (_) => hideOverview(sidePanel));
 
     d.init();
 }
@@ -108,10 +121,10 @@ function restoreDefaultValues(e) {
 let isNavigating = false;
 window.addEventListener('beforeunload', _ => isNavigating = true);
 
-async function generateFolds(e, objectManager) {
+async function generateFolds(e, objectManager, sidePanel) {
     e.preventDefault();
 
-    showOverview();
+    showOverview(sidePanel);
 
     const displayName = document.getElementById("name").value;
     const sequence = document.getElementById("sequence").value
@@ -130,7 +143,7 @@ async function generateFolds(e, objectManager) {
     );
 
     if (sessionId === null) {
-        hideOverview();
+        hideOverview(sidePanel);
 
         return;
     }
@@ -203,10 +216,7 @@ async function generateFolds(e, objectManager) {
     }, { once: true });
 }
 
-function showOverview() {
-    const $form = document.getElementById("folding-form");
-    $form.style.display = "none";
-
+function showOverview(sidePanel) {
     const $backButton = document.getElementById("end-folding-session");
     $backButton.textContent = "Cancel";
     $backButton.classList.add("cancel");
@@ -217,20 +227,18 @@ function showOverview() {
     $progressBar.classList.remove("finished");
     $progressBar.style.width = "";
 
-    const $overview = document.getElementById('folding-overview');
+    const $overview = document.getElementById("folding-overview");
 
     $overview.querySelector("h2").textContent = document.getElementById("name").value;
-    $overview.style.display = "flex";
+
+    sidePanel.showPanel("folding-overview");
 }
 
-function hideOverview() {
-    const $overview = document.getElementById('folding-overview');
-    $overview.style.display = "";
+function hideOverview(sidePanel) {
+    sidePanel.back();
 
-    const $form = document.getElementById("folding-form");
-    $form.style.display = "";
-
-    $overview.dispatchEvent(new CustomEvent("folding-session-ended"));
+    document.getElementById('folding-overview')
+        .dispatchEvent(new CustomEvent("folding-session-ended"));
 }
 
 async function getFoldingSession(displayName, sequence, folds, steps, returnNoise) {
