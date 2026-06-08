@@ -29,20 +29,29 @@ async function login(e) {
     const mail = document.getElementById("mail").value;
     const password = document.getElementById("password").value;
 
-    const res = await fetch(
-        `${API}/v1/accounts/login`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
+    let res;
+
+    try {
+        res = await fetch(
+            `${API}/v1/accounts/login`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    mail: mail,
+                    password: password,
+                }),
             },
-            credentials: "include",
-            body: JSON.stringify({
-                mail: mail,
-                password: password,
-            }),
-        },
-    );
+        );
+    } catch (e) {
+        console.error(e);
+        alert("Could not connect to the server. Please try again later.");
+
+        return
+    }
 
     if (!res.ok) {
         if (res.status === 400) {

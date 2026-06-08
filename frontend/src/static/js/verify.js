@@ -21,8 +21,9 @@ async function completeAccount(e) {
         {
             method: "PATCH",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify({
                 password,
             }),

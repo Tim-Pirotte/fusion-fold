@@ -108,6 +108,32 @@ async function deleteAccount() {
     )) {
         return;
     }
+
+    const res = await fetch(
+        `${API}/v1/accounts`,
+        {
+            method: "DELETE",
+            credentials: "include",
+        },
+    );
+
+    if (!res.ok) {
+        if (res.status === 401) {
+            logOut();
+
+            return;
+        } else if (res.status === 404) {
+            alert("The account you are trying to delete does not exist");
+
+            return;
+        } else {
+            alert("Something went wrong while deleting the account");
+
+            return;
+        }
+    }
+
+    location.href = "/login";
 }
 
 export { init };
