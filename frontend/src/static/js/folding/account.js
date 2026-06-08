@@ -1,6 +1,6 @@
 import { API } from "../config.js";
 
-async function loadProfile() {
+async function init() {
     const loggedIn = document.cookie
         .split("; ")
         .some(c => c.startsWith("logged_in="));
@@ -9,6 +9,13 @@ async function loadProfile() {
         location.href = "/login";
     }
 
+    document.getElementById("show-account")
+        .addEventListener("click", toggleDashBoard);
+
+    await loadProfile();
+}
+
+async function loadProfile() {
     const res = await fetch(
         `${API}/v1/accounts`,
         {
@@ -34,4 +41,20 @@ async function loadProfile() {
     document.getElementById("display-name").innerText = data["display_name"];
 }
 
-export { loadProfile };
+function toggleDashBoard(e) {
+    const $button = e.currentTarget;
+
+    if ($button.hasAttribute("data-show-account")) {
+        document.getElementById("account-dashboard")
+            .style.display = "flex";
+
+
+    } else {
+        document.getElementById("account-dashboard")
+            .style.display = "";
+    }
+
+    $button.toggleAttribute("data-show-account")
+}
+
+export { init };

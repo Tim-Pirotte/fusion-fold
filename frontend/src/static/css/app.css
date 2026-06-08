@@ -334,7 +334,7 @@ body {
             }
         }
 
-        > section {
+        > #folding-overview {
             display: none;
             flex-direction: column;
             height: 100%;
@@ -496,6 +496,10 @@ body {
                     }
                 }
             }
+        }
+
+        > #account-dashboard {
+            display: none;
         }
     }
 }

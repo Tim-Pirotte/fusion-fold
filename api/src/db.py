@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Type
 import functools
+import asyncio
 import time
 import uuid
 
@@ -71,6 +72,9 @@ async def get_postgres_connection(settings: s.Settings, username: str) -> AsyncS
         try:
             yield session
             await session.commit()
+        except asyncio.CancelledError:
+            await session.rollback()
+            raise
         except Exception as e:
             await session.rollback()
             raise DataBaseError('Database operation failed') from e
