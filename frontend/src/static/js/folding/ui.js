@@ -247,7 +247,7 @@ async function getFoldingSession(displayName, sequence, folds, steps, returnNois
         {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
             credentials: "include",
             body: JSON.stringify({
@@ -256,7 +256,7 @@ async function getFoldingSession(displayName, sequence, folds, steps, returnNois
                 folds_to_generate: folds,
                 steps_per_fold: steps,
                 return_noise: returnNoise,
-            })
+            }),
         },
     );
 

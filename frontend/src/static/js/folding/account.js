@@ -38,6 +38,7 @@ async function loadProfile() {
             },
         );
     } catch (e) {
+        console.error(e);
         setDisplayName("Error");
 
         return;
@@ -135,8 +136,45 @@ async function deleteAccount() {
     location.href = "/login";
 }
 
-async function changeDisplayName() {
+async function changeDisplayName(e) {
+    e.preventDefault();
 
+    const displayName = document.getElementById("display-name-input").value;
+
+    let res;
+
+    try {
+        res = await fetch(
+            `${API}/v1/accounts/display-name`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    display_name: displayName,
+                }),
+            },
+        );
+    } catch (e) {
+        console.error(e);
+        loadProfile();
+
+        return;
+    }
+
+    if (!res.ok) {
+        if (res.status === 404) {
+            alert("The logged in account does not exist anymore");
+        } else if (res.status === 401) {
+            location.href = "/login";
+        } else {
+            alert("Something unknown went wrong");
+        }
+    }
+
+    loadProfile();
 }
 
 export { init };
