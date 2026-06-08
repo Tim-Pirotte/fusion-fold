@@ -30,7 +30,9 @@ async function loadProfile() {
         );
     } catch (e) {
         console.error(e);
-        document.getElementById("display-name").innerText = "Error";
+        document.getElementById("display-name").textContent = "Error";
+        document.getElementById("dashboard-display-name").textContent = "Error";
+        document.getElementById("display-name-input").value = "Error";
 
         return;
     }
@@ -49,7 +51,9 @@ async function loadProfile() {
 
     const data = await res.json();
 
-    document.getElementById("display-name").innerText = data["display_name"];
+    document.getElementById("display-name").textContent = data["display_name"];
+    document.getElementById("dashboard-display-name").textContent = data["display_name"];
+    document.getElementById("display-name-input").value = data["display_name"];
 }
 
 function toggleDashBoard(e, sidePanel) {
