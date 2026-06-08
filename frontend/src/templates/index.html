@@ -37,7 +37,7 @@
     <section>
         <div id="header">
             <h1>RNA Folding</h1>
-            <button id="show-account">
+            <button id="show-account" data-show-account>
                 <img src="{{ url_for('static', filename='images/account.svg') }}" alt="Account" />
                 <span id="display-name">loading...</span>
             </button>
@@ -110,6 +110,16 @@
             <div class="progress-bar-bg">
                 <div id="progress-bar"></div>
             </div>
+        </section>
+        <section id="account-dashboard">
+            <h2 id="dashboard-display-name"></h2>
+            <form id="change-display-name">
+                <label for="display-name">Display name</label>
+                <input type="text" id="display-name" minlength="1" maxlength="255" placeholder="e.g. MSGII">
+                <button type="submit">Change display name</button>
+            </form>
+            <button id="log-out">Log out</button>
+            <button id="delete-account">Delete account</button>
         </section>
     </section>
 </body>
