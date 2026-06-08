@@ -163,7 +163,7 @@ async function generateFolds(e, objectManager, sidePanel) {
 
     eventSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        const { fold, step, coords } = data;
+        let { fold, step, coords } = data;
 
         updateProgressBar(fold, step, folds, steps);
 
