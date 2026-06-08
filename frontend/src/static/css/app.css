@@ -174,28 +174,45 @@ body {
                 }
             }
 
-            > button {
+            > div {
                 display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 0.4rem;
-                border: none;
-                background-color: #ff9800;
-                box-shadow: 0.25rem 0.25rem 0.0625rem -0.0625rem rgba(0,0,0,0.15);
-                color: white;
-                font-weight: bold;
-                border-radius: 0.25rem;
-                transition: background-color 0.3s ease-in-out, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
-                @media (max-aspect-ratio: 1/1) {
-                    padding: 0.4rem;
-                    font-size: small;
+                > #show-history {
+                    border: none;
+                    background: none;
+                    display: flex;
+                    align-items: center;
+                    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+                    &:hover {
+                        transform: scale(1.05);
+                        cursor: pointer;
+                    }
                 }
 
-                &:hover {
-                    background-color: #ffa114;
-                    transform: scale(1.05);
-                    cursor: pointer;
+                > #show-account {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.4rem;
+                    border: none;
+                    background-color: #ff9800;
+                    box-shadow: 0.25rem 0.25rem 0.0625rem -0.0625rem rgba(0,0,0,0.15);
+                    color: white;
+                    font-weight: bold;
+                    border-radius: 0.25rem;
+                    transition: background-color 0.3s ease-in-out, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+                    @media (max-aspect-ratio: 1/1) {
+                        padding: 0.4rem;
+                        font-size: small;
+                    }
+
+                    &:hover {
+                        background-color: #ffa114;
+                        transform: scale(1.05);
+                        cursor: pointer;
+                    }
                 }
             }
         }

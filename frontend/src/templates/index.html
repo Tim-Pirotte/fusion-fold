@@ -37,10 +37,15 @@
     <section>
         <div id="header">
             <h1>RNA Folding</h1>
-            <button id="show-account">
-                <img src="{{ url_for('static', filename='images/account.svg') }}" alt="Account" />
-                <span id="display-name">loading...</span>
-            </button>
+            <div>
+                <button id="show-history">
+                    <img src="{{ url_for('static', filename='images/history.svg') }}" alt="History" />
+                </button>
+                <button id="show-account">
+                    <img src="{{ url_for('static', filename='images/account.svg') }}" alt="Account" />
+                    <span id="display-name">loading...</span>
+                </button>
+            </div>
         </div>
         <form id="folding-form">
             <fieldset>
@@ -120,6 +125,11 @@
             </form>
             <button id="log-out">Log out</button>
             <button id="delete-account">Delete account</button>
+        </section>
+        <section id="history">
+            <template id="prediction-template">
+
+            </template>
         </section>
     </section>
 </body>

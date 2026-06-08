@@ -1,7 +1,7 @@
 import json
 import typing
 import logging
-import asyncio
+import datetime
 from pathlib import Path
 
 import pydantic as p
@@ -155,6 +155,14 @@ async def folding_streamer(
             last_fold['coords'],
         )
 
+class PredictionResponse(p.BaseModel):
+    id: int
+    display_name: str
+    created_at: datetime.datetime
+
+class PredictionHistoryResponse(p.BaseModel):
+    predictions: list[PredictionResponse]
+
 @protected.get(
     '/v1/predictions',
     tags=['folding'],
@@ -163,6 +171,7 @@ async def folding_streamer(
                 ' display_name, date (created_at) and id'
                 f' of the last (limited to {settings.max_predictions_saved}) predictions'
                 ' of the logged in user',
+    response_model=PredictionHistoryResponse,
     responses={
         404: {'description': 'The logged in account does not exist or is disabled'}
     }
