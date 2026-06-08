@@ -27,7 +27,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=['GET', 'POST', 'PATCH', 'PUT'],
+    allow_methods=['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
     allow_headers=['*'],
 )
 
@@ -317,6 +317,7 @@ def set_auth_cookie(response: fa.Response, account_id: int):
     # For the client to check if it is logged in
     response.set_cookie(
         key='logged_in',
+        value='true',
         httponly=False,
         secure=False,
         samesite='lax'
