@@ -12,13 +12,16 @@ async function init(sidePanel) {
     sidePanel.addPanel("account-dashboard");
 
     document.getElementById("show-account")
-        .addEventListener("click", (e) => toggleDashBoard(e, sidePanel));
+        .addEventListener("click", (_) => toggleDashBoard(sidePanel));
 
     document.getElementById("log-out")
         .addEventListener("click", logOut);
 
     document.getElementById("delete-account")
         .addEventListener("click", deleteAccount);
+
+    document.getElementById("change-display-name")
+        .addEventListener("submit", changeDisplayName);
 
     await loadProfile();
 }
@@ -67,16 +70,12 @@ function setDisplayName(name) {
     document.getElementById("display-name-input").value = name;
 }
 
-function toggleDashBoard(e, sidePanel) {
-    const $button = e.currentTarget;
-
-    if ($button.hasAttribute("data-show-account")) {
+function toggleDashBoard(sidePanel) {
+    if (sidePanel.getCurrentPanel() !== "account-dashboard") {
         sidePanel.showPanel("account-dashboard");
     } else {
         sidePanel.back();
     }
-
-    $button.toggleAttribute("data-show-account")
 }
 
 async function logOut() {
@@ -134,6 +133,10 @@ async function deleteAccount() {
     }
 
     location.href = "/login";
+}
+
+async function changeDisplayName() {
+
 }
 
 export { init };
