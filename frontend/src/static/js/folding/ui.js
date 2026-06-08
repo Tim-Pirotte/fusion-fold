@@ -4,7 +4,7 @@ import * as c from "./clamp.js";
 import * as a from "./align.js";
 import { API } from "../config.js";
 
-const MIN_SEQUENCE_LENGTH = 2;
+const MIN_SEQUENCE_LENGTH = 3;
 
 function init(objectManager, sidePanel) {
     sidePanel.addPanel("folding-form");
