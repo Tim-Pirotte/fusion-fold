@@ -186,7 +186,11 @@ async function generateFolds(e, objectManager, sidePanel) {
             sequence.length,
         );
 
-        lastStrand.addFrame(a.rotateAlignPoints(window.groundTruthCoords, coords));
+        if (window.groundTruthCoords) {
+            coords = a.rotateAlignPoints(window.groundTruthCoords, coords);
+        }
+
+        lastStrand.addFrame(coords);
     };
 
     eventSource.addEventListener("end", function() {
