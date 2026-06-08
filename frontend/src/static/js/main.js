@@ -6,7 +6,7 @@ import * as foldingUI from "./folding/ui.js";
 
 const sidePanel = s.SidePanel;
 a.init(sidePanel);
-h.init(sidePanel);
 
 const objectManager = v.init();
+h.init(objectManager, sidePanel);
 foldingUI.init(objectManager, sidePanel);

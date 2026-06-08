@@ -1,13 +1,14 @@
 import { API } from "../config.js";
+import * as m from "./model.js";
 
-function init(sidePanel) {
+function init(objectManager, sidePanel) {
     sidePanel.addPanel("history");
 
     document.getElementById("show-history")
         .addEventListener("click", (_) => toggleHistory(sidePanel));
 
     document.getElementById("history")
-        .addEventListener("click", (e) => handleHistoryClick(e, sidePanel))
+        .addEventListener("click", (e) => handleHistoryClick(e, objectManager, sidePanel))
 }
 
 function toggleHistory(sidePanel) {
@@ -77,20 +78,21 @@ async function renderHistory() {
     }
 }
 
-function handleHistoryClick(e, sidePanel) {
+function handleHistoryClick(e, objectManager, sidePanel) {
     const button = e.target.closest("button");
 
     if (!button) {
         return;
     }
 
-    const id = button.closest("li").dataset.id;
+    const $li = button.closest("li");
+    const id = $li.dataset.id;
 
     if (button.classList.contains("load-sequence")) {
         loadSequence(id);
         sidePanel.back();
     } else {
-        loadCoordss(id);
+        loadCoords(objectManager, id, $li.querySelector("span").textContent);
     }
 }
 
@@ -120,7 +122,7 @@ async function loadSequence(id) {
         } else if (res.status === 401) {
             location.href = "/login";
         } else {
-            alert("Something went wrong while retrieving history data");
+            alert("Something went wrong while retrieving the sequence");
 
             return;
         }
@@ -131,8 +133,44 @@ async function loadSequence(id) {
     document.getElementById("sequence").value = data["sequence"];
 }
 
-async function loadCoordss(id) {
+async function loadCoords(objectManager, id, name) {
+    let res;
 
+    try {
+        res = await fetch(
+            `${API}/v1/predictions/${id}/coords`,
+            {
+                method: "GET",
+                credentials: "include",
+            },
+        );
+    } catch (e) {
+        console.error(e);
+        alert("Something unknown went wrong");
+
+        return;
+    }
+
+    if (!res.ok) {
+        if (res.status === 404) {
+            alert("The logged in account does not exist anymore");
+
+            return;
+        } else if (res.status === 401) {
+            location.href = "/login";
+        } else {
+            alert("Something went wrong while retrieving the coordinates");
+
+            return;
+        }
+    }
+
+    const data = await res.json();
+    const coords = data.coords.map(({ x, y, z }) => [x, y, z]);
+
+    // TODO: this should use the actual sequence but I don't have enough time to do that
+    const strand = m.createStrand(objectManager, "A".repeat(coords.length), -1, name);
+    strand.addFrame(coords);
 }
 
 export { init };
