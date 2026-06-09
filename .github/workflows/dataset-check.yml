@@ -33,6 +33,7 @@ jobs:
         run: |
           LATEST=$(az ml data show \
             --name train_sequences_v2 \
+            --label latest \
             --resource-group azure-project \
             --workspace-name projectmachinelearning \
             --query "version" -o tsv)
