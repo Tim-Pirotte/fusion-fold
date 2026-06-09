@@ -1,0 +1,86 @@
+name: Dataset Change Detection
+
+on:
+  schedule:
+    - cron: '* * * * *'
+  workflow_dispatch:
+
+jobs:
+  check-dataset:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.compare.outputs.changed }}
+      latest_version: ${{ steps.get-version.outputs.latest_version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install Azure ML CLI extension
+        run: az extension add -n ml -y
+
+      - name: Get latest dataset version
+        id: get-version
+        run: |
+          LATEST=$(az ml data show \
+            --name train_sequences_v2 \
+            --resource-group azure-project \
+            --workspace-name projectmachinelearning \
+            --query "version" -o tsv)
+          echo "Latest dataset version: $LATEST"
+          echo "latest_version=$LATEST" >> $GITHUB_OUTPUT
+
+      - name: Restore previous version from cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: .dataset_version_cache
+          key: dataset-version-${{ steps.get-version.outputs.latest_version }}
+          restore-keys: dataset-version-
+
+      - name: Compare versions
+        id: compare
+        run: |
+          LATEST="${{ steps.get-version.outputs.latest_version }}"
+          if [ "${{ steps.cache.outputs.cache-hit }}" == "true" ]; then
+            echo "Dataset version $LATEST unchanged."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "New dataset version $LATEST detected!"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            mkdir -p .dataset_version_cache
+            echo "$LATEST" > .dataset_version_cache/version.txt
+          fi
+
+  run-pipeline:
+    needs: check-dataset
+    if: needs.check-dataset.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install Azure ML CLI extension
+        run: az extension add -n ml -y
+
+      - name: Print detected version
+        run: echo "Running pipeline for dataset version ${{ needs.check-dataset.outputs.latest_version }}"
+
+      - name: Submit Azure ML Pipeline
+        run: |
+          az ml job create \
+            --file azure/pipeline.yaml \
+            --workspace-name projectmachinelearning \
+            --resource-group azure-project \
+            --set inputs.epochs=1
