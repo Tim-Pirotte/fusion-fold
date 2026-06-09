@@ -11,18 +11,26 @@ spec:
   - host: localhost
     http:
       paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: svc-frontend
-            port:
-              number: {{ .Values.frontend.service.port }}
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: svc-frontend
+              port:
+                number: {{ .Values.frontend.service.port }}
 
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: svc-api
-            port:
-              number: {{ .Values.api.service.port }}
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: svc-api
+              port:
+                number: {{ .Values.api.service.port }}
+
+        - path: /openapi.json
+          pathType: Exact
+          backend:
+            service:
+              name: svc-api
+              port:
+                number: {{ .Values.api.service.port }}
