@@ -4,6 +4,7 @@ metadata:
   name: ingress-router
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
+    traefik.ingress.kubernetes.io/router.middlewares: fusion-fold-strip-api-prefix@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
