@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.frontend.deployment.repository }}:{{ .Values.frontend.deployment.tag }}"
+          imagePullPolicy: {{ .Values.frontend.deployment.pullPolicy }}
           ports:
-            - containerPort: 8000
+            - containerPort: {{ .Values.frontend.deployment.containerPort }}
       imagePullSecrets:
-        - name: ghcr-secret
+        - name: {{ .Values.imagePullSecret }}
