@@ -2,15 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
+
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: frontend
+
   template:
     metadata:
       labels:
         app: frontend
+
     spec:
       containers:
         - name: frontend
@@ -18,5 +21,10 @@ spec:
           imagePullPolicy: {{ .Values.frontend.deployment.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.frontend.deployment.containerPort }}
+
+          envFrom:
+            - configMapRef:
+                name: config-frontend
+
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret }}
