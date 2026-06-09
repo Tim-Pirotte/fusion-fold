@@ -19,12 +19,29 @@ spec:
         - name: frontend
           image: "{{ .Values.frontend.deployment.image }}"
           imagePullPolicy: {{ .Values.frontend.deployment.imagePullPolicy }}
-          ports:
-            - containerPort: {{ .Values.frontend.deployment.containerPort }}
-
+          command: ["gunicorn"]
+          args: ["--bind", "0.0.0.0:5000", "src.main:app"]
+          env:
+            - name: PYTHONPATH
+              value: /app/src
           envFrom:
             - configMapRef:
                 name: config-frontend
+
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: {{ .Values.frontend.deployment.containerPort }}
+
+          volumeMounts:
+            - name: config-nginx
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: nginx.conf
+
+      volumes:
+        - name: config-nginx
+          configMap:
+            name: config-nginx
 
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret }}
