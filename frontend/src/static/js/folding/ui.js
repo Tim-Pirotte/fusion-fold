@@ -248,23 +248,30 @@ function hideOverview(sidePanel) {
 }
 
 async function getFoldingSession(displayName, sequence, folds, steps, returnNoise) {
-    const res = await fetch(
-        `${API}/v1/folding-sessions`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
+    let res;
+
+    try {
+        res = await fetch(
+            `${API}/v1/folding-sessions`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    display_name: displayName,
+                    sequence: sequence,
+                    folds_to_generate: folds,
+                    steps_per_fold: steps,
+                    return_noise: returnNoise,
+                }),
             },
-            credentials: "include",
-            body: JSON.stringify({
-                display_name: displayName,
-                sequence: sequence,
-                folds_to_generate: folds,
-                steps_per_fold: steps,
-                return_noise: returnNoise,
-            }),
-        },
-    );
+        );
+    } catch (e) {
+        console.error(e);
+        alert("Something went wrong while generating a new folding session.");
+    }
 
     if (!res.ok) {
         alert("Something went wrong while generating a new folding session.");
