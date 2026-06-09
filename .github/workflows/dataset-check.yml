@@ -1,8 +1,12 @@
 name: Dataset Change Detection
 
 on:
+  push:
+    branches:
+      - main
+      - azure
   schedule:
-    - cron: '* * * * *'
+    - cron: '0 8 * * *'
   workflow_dispatch:
 
 jobs:
