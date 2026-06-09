@@ -1,3 +1,3 @@
-const API = "http://localhost:5000";
+const API = window.__CONFIG__.API;
 
 export { API };

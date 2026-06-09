@@ -11,6 +11,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
     <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
+    <script>
+        // See settings.py for an explanation of why we use this
+        window.__CONFIG__ = {
+            API: "{{ api }}",
+        };
+    </script>
 </head>
 <body>
     <h1>Login Or Register</h1>

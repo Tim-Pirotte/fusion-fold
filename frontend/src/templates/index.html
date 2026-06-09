@@ -12,6 +12,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     <script src="{{ url_for('static', filename='js/lib/svd.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // See settings.py for an explanation of why we use this
+        window.__CONFIG__ = {
+            API: "{{ api }}",
+        };
+    </script>
 </head>
 <body>
     <main>
