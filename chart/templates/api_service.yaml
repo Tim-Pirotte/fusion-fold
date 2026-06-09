@@ -3,9 +3,8 @@ kind: Service
 metadata:
   name: svc-api
 spec:
-  type: ClusterIP
   selector:
-    app: svc-api
+    app: api
   ports:
-    - port: 5000
-      targetPort: 5000
+    - port: {{ .Values.api.service.port }}
+      targetPort: {{ .Values.api.deployment.containerPort }}

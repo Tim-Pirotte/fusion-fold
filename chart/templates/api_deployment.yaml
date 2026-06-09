@@ -7,13 +7,35 @@ spec:
   selector:
     matchLabels:
       app: api
+
   template:
     metadata:
       labels:
         app: api
+
     spec:
+      # The runtime was attempting to mount at a read-only part of the file system
+      automountServiceAccountToken: false
       containers:
         - name: api
           image: "{{ .Values.api.deployment.image }}"
+          imagePullPolicy: {{ .Values.api.deployment.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.api.deployment.containerPort }}
+
+          envFrom:
+            - configMapRef:
+                name: config-api
+
+          volumeMounts:
+            - name: secrets-api
+              mountPath: /run/secrets
+              readOnly: true
+
+      volumes:
+        - name: secrets-api
+          secret:
+            secretName: secrets-api
+
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret }}

@@ -5,6 +5,7 @@ metadata:
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
 spec:
+  ingressClassName: traefik
   rules:
   - host: localhost
     http:
@@ -23,4 +24,4 @@ spec:
           service:
             name: svc-api
             port:
-              number: 5000
+              number: {{ .Values.api.service.port }}
