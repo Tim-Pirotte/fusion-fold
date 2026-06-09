@@ -2,8 +2,7 @@ imagePullSecret: ghcr-secret
 
 frontend:
   deployment:
-    repository: ghcr.io/tim-pirotte/frontend
-    tag: latest
+    image: ghcr.io/tim-pirotte/frontend:latest
     pullPolicy: Always
     containerPort: 8000
 
@@ -12,3 +11,12 @@ frontend:
     port: 8000
     targetPort: 8000
     nodePort: 30080
+
+api:
+  deployment:
+    image: ghcr.io/tim-pirotte/api:latest
+    pullPolicy: Always
+    containerPort: 5000
+
+  service:
+

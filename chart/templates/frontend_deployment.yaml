@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "chart.fullname" . }}
+  name: frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ include "chart.name" . }}
+      app: frontend
   template:
     metadata:
       labels:
-        app: {{ include "chart.name" . }}
+        app: frontend
     spec:
       containers:
         - name: frontend
-          image: "{{ .Values.frontend.deployment.repository }}:{{ .Values.frontend.deployment.tag }}"
+          image: "{{ .Values.frontend.deployment.image }}"
           imagePullPolicy: {{ .Values.frontend.deployment.pullPolicy }}
           ports:
             - containerPort: {{ .Values.frontend.deployment.containerPort }}
