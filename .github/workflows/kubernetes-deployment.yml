@@ -36,7 +36,8 @@ jobs:
             --set-file chart/files/redis/users.acl=${{ secrets.ACL }} `
             --set-file chart/files/redis/users/write.secret=${{ secrets.WRITE }} `
             --set-file chart/files/redis/users/read_delete.secret=${{ secrets.READ_DELETE }} `
-            --wait
+            --wait `
+            --timeout 15m
 
       - name: Restart deployments
         run: |
