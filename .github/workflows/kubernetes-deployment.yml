@@ -18,24 +18,27 @@ jobs:
       - name: Check out code repository
         uses: actions/checkout@v4
 
+      - name: Copy secret files
+        run: |
+          Copy-Item ${{ secrets.JWT }} -Destination chart/files/api/jwt.secret
+          Copy-Item ${{ secrets.SERIALIZER }} -Destination chart/files/api/serializer.secret
+          Copy-Item ${{ secrets.SQL_INIT }} -Destination chart/files/postgres/init.sql
+          Copy-Item ${{ secrets.ADMIN }} -Destination chart/files/postgres/users/admin.secret
+          Copy-Item ${{ secrets.ACCOUNTS_S }} -Destination chart/files/postgres/users/accounts_s.secret
+          Copy-Item ${{ secrets.ACCOUNTS_SD }} -Destination chart/files/postgres/users/accounts_sd.secret
+          Copy-Item ${{ secrets.ACCOUNTS_SIU }} -Destination chart/files/postgres/users/accounts_siu.secret
+          Copy-Item ${{ secrets.ACCOUNTS_SU }} -Destination chart/files/postgres/users/accounts_su.secret
+          Copy-Item ${{ secrets.PREDICTIONS_S }} -Destination chart/files/postgres/users/predictions_s.secret
+          Copy-Item ${{ secrets.PREDICTIONS_ID }} -Destination chart/files/postgres/users/predictions_id.secret
+          Copy-Item ${{ secrets.WRITE }} -Destination chart/files/redis/users/write.secret
+          Copy-Item ${{ secrets.READ_DELETE }} -Destination chart/files/redis/users/read_delete.secret
+          Copy-Item ${{ secrets.ACL }} -Destination chart/files/redis/users.acl
+
       - name: Deploy
         run: |
           helm upgrade --install fusion-fold ./chart `
             -n fusion-fold `
             --create-namespace `
-            --set-file chart/files/api/jwt.secret=${{ secrets.JWT }} `
-            --set-file chart/files/api/serializer.secret=${{ secrets.SERIALIZER }} `
-            --set-file chart/files/postgres/init.sql=${{ secrets.SQL_INIT }} `
-            --set-file chart/files/postgres/users/accounts_s.secret=${{ secrets.ACCOUNTS_S }} `
-            --set-file chart/files/postgres/users/accounts_sd.secret=${{ secrets.ACCOUNTS_SD }} `
-            --set-file chart/files/postgres/users/accounts_siu.secret=${{ secrets.ACCOUNTS_SIU }} `
-            --set-file chart/files/postgres/users/accounts_su.secret=${{ secrets.ACCOUNTS_SU }} `
-            --set-file chart/files/postgres/users/predictions_s.secret=${{ secrets.PREDICTIONS_S }} `
-            --set-file chart/files/postgres/users/predictions_id.secret=${{ secrets.PREDICTIONS_ID }} `
-            --set-file chart/files/postgres/users/admin.secret=${{ secrets.ADMIN }} `
-            --set-file chart/files/redis/users.acl=${{ secrets.ACL }} `
-            --set-file chart/files/redis/users/write.secret=${{ secrets.WRITE }} `
-            --set-file chart/files/redis/users/read_delete.secret=${{ secrets.READ_DELETE }} `
             --wait `
             --timeout 15m
 
