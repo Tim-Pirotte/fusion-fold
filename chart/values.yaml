@@ -29,3 +29,12 @@ postgres:
 
   pvc:
     storage: 1Gi
+
+redis:
+  deployment:
+    image: ghcr.io/tim-pirotte/redis:latest
+    imagePullPolicy: Always
+    containerPort: 6379
+
+  service:
+    port: 6379

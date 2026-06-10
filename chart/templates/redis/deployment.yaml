@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+
+  template:
+    metadata:
+      labels:
+        app: redis
+
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.deployment.image }}"
+          imagePullPolicy: {{ .Values.redis.deployment.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.redis.deployment.containerPort }}
+
+          volumeMounts:
+            - name: secrets-redis
+              mountPath: /run/secrets
+              readOnly: true
+
+      volumes:
+        - name: secrets-redis
+          secret:
+            secretName: secrets-redis
+
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret }}
