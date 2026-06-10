@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: config-api
 data:
+  ROOT_PATH: /api
+
   SERIALIZER_VALIDITY_SECONDS: "86400"
 
   SCRYPT_SALT_BYTES: "32"
