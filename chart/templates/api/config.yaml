@@ -17,7 +17,7 @@ data:
   JWT_ALGORITHM: "HS256"
   JWT_VALIDITY_DAYS: "1"
 
-  REDIS_HOST: "redis"
+  REDIS_HOST: "svc-redis"
   REDIS_PORT: "6379"
   REDIS_DB: "0"
 
