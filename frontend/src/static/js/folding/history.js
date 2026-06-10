@@ -131,6 +131,7 @@ async function loadSequence(id) {
     const data = await res.json();
 
     document.getElementById("sequence").value = data["sequence"];
+    window.groundTruthCoords = null;
 }
 
 async function loadCoords(objectManager, id, name) {
