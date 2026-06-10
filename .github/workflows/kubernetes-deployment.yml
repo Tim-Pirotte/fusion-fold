@@ -20,6 +20,9 @@ jobs:
 
       - name: Copy secret files
         run: |
+          New-Item -ItemType Directory -Force -Path chart/files/api
+          New-Item -ItemType Directory -Force -Path chart/files/postgres/users
+          New-Item -ItemType Directory -Force -Path chart/files/redis/users
           Copy-Item ${{ secrets.JWT }} -Destination chart/files/api/jwt.secret
           Copy-Item ${{ secrets.SERIALIZER }} -Destination chart/files/api/serializer.secret
           Copy-Item ${{ secrets.SQL_INIT }} -Destination chart/files/postgres/init.sql
