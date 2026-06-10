@@ -1,3 +1,5 @@
+# This works but we instead replaced it with root_path in Fast API
+# to make the swagger UI point to the correct endpoints
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
