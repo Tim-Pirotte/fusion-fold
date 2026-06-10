@@ -14,6 +14,8 @@ spec:
         app: postgres
 
     spec:
+      # The runtime was attempting to mount at a read-only part of the file system
+      automountServiceAccountToken: false
       containers:
         - name: postgres
           image: "{{ .Values.postgres.statefulset.image }}"

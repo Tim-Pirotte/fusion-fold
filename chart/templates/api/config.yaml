@@ -19,7 +19,7 @@ data:
   REDIS_PORT: "6379"
   REDIS_DB: "0"
 
-  POSTGRES_HOST: "postgres"
+  POSTGRES_HOST: "svc-postgres"
   POSTGRES_PORT: "5432"
   POSTGRES_DB: "rna_folding"
   POSTGRES_POOL_SIZE: "5"

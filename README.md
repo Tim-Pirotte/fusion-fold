@@ -6,8 +6,8 @@
 
 ## Kubernetes Deployment
 1. Ensure Docker, KubeCTL and K3D are installed on the system
-2. Copy every .example file and do the same step as for the local deployment
-3. Create a cluster with port 80 exposed on port 8000 of the host: `k3d cluster create k3s-default -p "8000:80@loadbalancer"` TODO check if 80:80 should be added
+2. Copy every .example file from the local deployment folders into chart/files/<Application name> without the .example suffix and change the secrets the same way as the local deployment.
+3. Create a cluster with port 80 exposed on port 8000 of the host: `k3d cluster create k3s-default -p "8000:80@loadbalancer" -v "C:/tmp:/tmp"` ("/tmp:/tmp" for Linux and Mac) TODO check if 80:80 should be added
 4. Create a namespace: `kubectl create namespace fusion-fold`
 5. Set the docker-registry secret so you can access the private images:
 ```
