@@ -10,6 +10,6 @@ spec:
     - ReadWriteOnce
 
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: manual
+  storageClassName: postgres-volume
   hostPath:
-    path: "/tmp/postgres-data"
+    path: "/tmp"

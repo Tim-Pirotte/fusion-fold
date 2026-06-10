@@ -5,6 +5,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+
+  storageClassName: postgres-volume
   resources:
     requests:
       storage: {{ .Values.postgres.pvc.storage }}
