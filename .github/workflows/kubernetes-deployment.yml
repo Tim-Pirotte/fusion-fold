@@ -1,0 +1,47 @@
+name: Kubernetes Deployment
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Docker Images"]
+    types:
+      - completed
+    branches:
+      - main
+      - create-helm-chart
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Check out code repository
+        uses: actions/checkout@v4
+
+      - name: Deploy
+        run: |
+          helm upgrade --install fusion-fold ./chart `
+            -n fusion-fold `
+            --create-namespace `
+            --set-file chart/files/api/jwt.secret=${{ secrets.JWT }} `
+            --set-file chart/files/api/serializer.secret=${{ secrets.SERIALIZER }} `
+            --set-file chart/files/postgres/init.sql=${{ secrets.SQL_INIT }} `
+            --set-file chart/files/postgres/users/accounts_s.secret=${{ secrets.ACCOUNTS_S }} `
+            --set-file chart/files/postgres/users/accounts_sd.secret=${{ secrets.ACCOUNTS_SD }} `
+            --set-file chart/files/postgres/users/accounts_siu.secret=${{ secrets.ACCOUNTS_SIU }} `
+            --set-file chart/files/postgres/users/accounts_su.secret=${{ secrets.ACCOUNTS_SU }} `
+            --set-file chart/files/postgres/users/predictions_s.secret=${{ secrets.PREDICTIONS_S }} `
+            --set-file chart/files/postgres/users/predictions_id.secret=${{ secrets.PREDICTIONS_ID }} `
+            --set-file chart/files/postgres/users/admin.secret=${{ secrets.ADMIN }} `
+            --set-file chart/files/redis/users.acl=${{ secrets.ACL }} `
+            --set-file chart/files/redis/users/write.secret=${{ secrets.WRITE }} `
+            --set-file chart/files/redis/users/read_delete.secret=${{ secrets.READ_DELETE }} `
+            --wait
+
+      - name: Restart deployments
+        run: |
+            kubectl rollout restart deployment/frontend -n fusion-fold
+            kubectl rollout restart deployment/api -n fusion-fold
+            kubectl rollout restart deployment/redis -n fusion-fold
+            kubectl rollout restart statefulset/postgres -n fusion-fold
