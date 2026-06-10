@@ -16,11 +16,14 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: "{{ .Values.postgres.image }}"
-          imagePullPolicy: {{ .Values.postgres.imagePullPolicy }}
+          image: "{{ .Values.postgres.statefulset.image }}"
+          imagePullPolicy: {{ .Values.postgres.statefulset.imagePullPolicy }}
           envFrom:
             - configMapRef:
                 name: config-postgres
+
+          ports:
+            - containerPort: {{ .Values.postgres.statefulset.containerPort }}
 
           volumeMounts:
             - name: postgres-data
