@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-postgres
+data:
+  POSTGRES_DB: "rna_folding"
+  POSTGRES_PASSWORD_FILE: "/run/secrets/pg_admin"
