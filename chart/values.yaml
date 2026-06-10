@@ -17,3 +17,15 @@ api:
 
   service:
     port: 5000
+
+postgres:
+  statefulset:
+    image: ghcr.io/tim-pirotte/postgres:latest
+    imagePullPolicy: Always
+    containerPort: 5432
+
+  service:
+    port: 5432
+
+  pvc:
+    storage: 1Gi
