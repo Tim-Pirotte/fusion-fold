@@ -1,6 +1,8 @@
 *.acl
 *.secret
 
+postgres/init.sql
+chart/files/postgres/init.sql
 *init.sql
 
 # Created by git for backups. To disable backups in Git:
