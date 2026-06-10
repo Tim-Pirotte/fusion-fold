@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  serviceName: svc-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.postgres.image }}"
+          imagePullPolicy: {{ .Values.postgres.imagePullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: config-postgres
+
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql
+            - name: secrets-postgres
+              mountPath: /run/secrets
+              readOnly: true
+
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: pvc-postgres
+
+        - name: secrets-postgres
+          secret:
+            secretName: secrets-postgres
+
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret }}
