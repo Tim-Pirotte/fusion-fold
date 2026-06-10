@@ -1,8 +1,8 @@
 *.acl
 *.secret
-*_secrets.yaml
+*secrets.yaml
 
-postgres/init.sql
+*init.sql
 
 # Created by git for backups. To disable backups in Git:
 # $ git config --global mergetool.keepBackup false
