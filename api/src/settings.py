@@ -5,6 +5,8 @@ import pydantic as p
 import pydantic_settings as ps
 
 class Settings(ps.BaseSettings):
+    root_path: str
+
     serializer_validity_seconds: int = p.Field(ge=1)
 
     scrypt_salt_bytes: int = p.Field(ge=1)
