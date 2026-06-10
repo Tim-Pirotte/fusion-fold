@@ -16,10 +16,12 @@ import models as mo
 import folding as f
 import settings as s
 
+settings = s.Settings()
+
 logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
 
-app = fa.FastAPI(title='RNA Folding API')
+app = fa.FastAPI(title='RNA Folding API', root_path=settings.root_path)
 
 origins = ['http://localhost:8000']
 
@@ -31,7 +33,6 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
-settings = s.Settings()
 serializer = URLSafeTimedSerializer(
     Path('/run/secrets/serializer_secret').read_text(encoding='utf-8').strip(),
 )
