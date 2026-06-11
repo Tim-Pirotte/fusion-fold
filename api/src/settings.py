@@ -29,6 +29,13 @@ class Settings(ps.BaseSettings):
     postgres_pool_size: int = p.Field(ge=1)
     postgres_max_overflow: int = p.Field(ge=-1)
 
+    azure_tenant_id: str
+    azure_client_id: str
+    azure_subscription_id: str
+    azure_resource_group: str
+    azure_workspace: str
+    azure_model: str
+
     min_password_len: int = p.Field(ge=1, le=255)
     max_password_len: int = p.Field(le=255)
 
