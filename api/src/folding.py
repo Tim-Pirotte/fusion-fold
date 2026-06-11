@@ -1,18 +1,50 @@
 from typing import TypedDict, AsyncIterator
+from pathlib import Path
 import asyncio
 import math
 import time
+import glob
 import os
 
+from azure.identity import ClientSecretCredential
+from azure.ai.ml import MLClient
 import numpy as np
 import torch
 
+import settings as s
+
 _model = None
+_latest = 0
 
-def get_model():
+def get_model(settings: s.Settings):
     global _model
+    global _latest
 
-    if _model is None:
+    credential = ClientSecretCredential(
+        tenant_id=settings.azure_tenant_id,
+        client_id=settings.azure_client_id,
+        client_secret=Path('/run/secrets/azure_client_secret')
+            .read_text(encoding='utf-8').strip(),
+    )
+
+    client = MLClient(
+        credential=credential,
+        subscription_id=settings.azure_subscription_id,
+        resource_group_name=settings.azure_resource_group,
+        workspace_name=settings.azure_workspace,
+    )
+
+    model_name = settings.azure_model
+
+    latest = max(
+        client.models.list(name=model_name),
+        key=lambda m: int(m.version),
+    )
+
+    if _model is None or latest.version > _latest:
+        print(f'\033[96mDownloading model version {latest.version}\033[0m')
+
+        _latest = latest.version
         _model = RNAConvModel(
             hidden_size=64,
             n_nucleotides=4,
@@ -22,9 +54,23 @@ def get_model():
             time_encoding_length=8,
         )
 
-        model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'rna.pt')
+        download_path = '/tmp/rna_model'
+        client.models.download(
+            name=model_name,
+            version=latest.version,
+            download_path=download_path,
+        )
 
-        _model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+        # This could be removed if the model wasn't saved under a directory with a date time
+        matches = glob.glob(os.path.join(download_path, "**/best_model.pt"), recursive=True)
+
+        if not matches:
+            raise FileNotFoundError(f"Could not find best_model.pt in {download_path}")
+
+        _model.load_state_dict(
+            torch.load(matches[0], map_location=torch.device('cpu')),
+        )
+
         _model.eval()
 
     return _model
@@ -60,12 +106,13 @@ class FoldingStep(TypedDict):
     coords: list[list[float]]
 
 async def folding_iterator(
+    settings: s.Settings,
     sequence: str,
     folds_to_generate: int,
     steps_per_fold: int,
     return_noise: bool,
 ) -> AsyncIterator[FoldingStep]:
-    model = get_model()
+    model = get_model(settings)
 
     num_nucleotides = len(sequence)
     seq = encode_sequence(sequence)

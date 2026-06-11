@@ -25,6 +25,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path chart/files/redis/users
           Copy-Item ${{ secrets.JWT }} -Destination chart/files/api/jwt.secret
           Copy-Item ${{ secrets.SERIALIZER }} -Destination chart/files/api/serializer.secret
+          Copy-Item ${{ secrets.AZURE_CLIENT_SECRET }} -Destination chart/files/api/azure_client_secret.secret
           Copy-Item ${{ secrets.SQL_INIT }} -Destination chart/files/postgres/init.sql
           Copy-Item ${{ secrets.ADMIN }} -Destination chart/files/postgres/users/admin.secret
           Copy-Item ${{ secrets.ACCOUNTS_S }} -Destination chart/files/postgres/users/accounts_s.secret

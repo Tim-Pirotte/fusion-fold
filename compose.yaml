@@ -19,6 +19,7 @@ services:
       - postgres_accounts_sd
       - postgres_predictions_s
       - postgres_predictions_id
+      - azure_client_secret
 
   frontend:
     build: ./frontend
@@ -82,3 +83,6 @@ secrets:
     file: ./postgres/users/predictions_s.secret
   postgres_predictions_id:
     file: ./postgres/users/predictions_id.secret
+
+  azure_client_secret:
+    file: ./api/azure_client_secret.secret
